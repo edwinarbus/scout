@@ -78,8 +78,17 @@ const FOCUS_MS = 2100;
  *  same frame and the fan never visibly reflects the real top picks. */
 const SHARPEN_MS = 550;
 /** View Transitions support — without it the fan falls back to the scout-lay
- *  swoop-in (the ranking view never server-renders, so this is hydration-safe). */
-const HAS_VT = typeof document !== "undefined" && "startViewTransition" in document;
+ *  swoop-in (the ranking view never server-renders, so this is hydration-safe).
+ *  Deliberately OFF below the mobile breakpoint too: WebKit's implementation
+ *  is unreliable on a page this transform-heavy (mascot, tilted cards) — it can
+ *  leave a frozen, dimmed snapshot of the old page on screen instead of
+ *  completing the morph. A plain instant state swap never has that failure
+ *  mode, and mobile doesn't miss the cross-fade the way a desktop layout would. */
+const HAS_VT =
+  typeof document !== "undefined" &&
+  "startViewTransition" in document &&
+  typeof window !== "undefined" &&
+  window.innerWidth >= 768;
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
@@ -115,7 +124,7 @@ function withViewTransition(update: () => void) {
   const d = document as Document & {
     startViewTransition?: (cb: () => void) => { ready: Promise<void>; finished: Promise<void> };
   };
-  if (d.startViewTransition) {
+  if (HAS_VT && d.startViewTransition) {
     const vt = d.startViewTransition(() => flushSync(update));
     vt.ready.catch(() => {});
     vt.finished.catch(() => {});
@@ -752,10 +761,16 @@ export default function ScoutApp() {
             }
           }}
           rows={1}
-          autoFocus
+          // Desktop only: autofocusing on a phone pops the keyboard up (and
+          // shifts the whole layout) the instant the page loads, before the
+          // user has done anything — a jarring first impression on mobile.
+          autoFocus={typeof window !== "undefined" && window.innerWidth >= 768}
           aria-label="Describe the dog you're looking for"
           placeholder={phase === "idle" ? typedHint : "Describe your dog…"}
-          className="block w-full resize-none bg-transparent px-1.5 py-1 text-[15.5px] leading-normal text-ink-900 placeholder:text-ink-400 focus:outline-none"
+          // 16px, not 15.5px: iOS Safari auto-zooms the page on focus for any
+          // input/textarea rendering text smaller than 16px — a well-known
+          // mobile-web gotcha, and especially jarring paired with autoFocus.
+          className="block w-full resize-none bg-transparent px-1.5 py-1 text-base leading-normal text-ink-900 placeholder:text-ink-400 focus:outline-none"
         />
       </div>
       <MicButton

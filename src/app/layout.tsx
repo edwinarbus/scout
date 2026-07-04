@@ -30,12 +30,25 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = { themeColor: "#1c8047" };
+export const viewport: Viewport = {
+  themeColor: "#1c8047",
+  width: "device-width",
+  initialScale: 1,
+  // "cover" lets content draw under the iOS notch/Dynamic Island/home
+  // indicator; safe-area-inset padding (where used) then reclaims that space
+  // instead of leaving letterboxed bars around the app shell.
+  viewportFit: "cover",
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${nunito.variable} ${baloo.variable}`}>
-      <body className="h-screen overflow-hidden antialiased">{children}</body>
+      {/* h-dvh (dynamic viewport height), not h-screen (100vh): iOS Safari's
+          address bar shows/hides as you scroll, and 100vh is sized for the
+          bar-hidden state — so a fixed-height single-page app shell built on
+          100vh gets cut off short whenever the bar is actually showing
+          (the default). 100dvh always matches what's really visible. */}
+      <body className="h-dvh overflow-hidden antialiased">{children}</body>
     </html>
   );
 }

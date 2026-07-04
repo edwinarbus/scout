@@ -117,13 +117,18 @@ body {
     box-shadow 0.2s ease,
     background-color 0.2s ease;
 }
-.scout-cta:hover:not(:disabled) {
-  background-color: var(--color-terra-600);
-  transform: translateY(-1px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 3px 6px rgba(21, 95, 54, 0.3),
-    0 12px 24px -6px rgba(28, 128, 71, 0.54);
+/* hover-capable devices only — on touch, :hover latches after a tap and the
+   button would stay stuck looking "hovered" until something else is tapped.
+   :active below already gives touch its own press feedback. */
+@media (hover: hover) {
+  .scout-cta:hover:not(:disabled) {
+    background-color: var(--color-terra-600);
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      0 3px 6px rgba(21, 95, 54, 0.3),
+      0 12px 24px -6px rgba(28, 128, 71, 0.54);
+  }
 }
 .scout-cta:active:not(:disabled) {
   transform: translateY(0);
@@ -611,21 +616,6 @@ body {
   }
 }
 
-/* resting polaroid tilt per card (rotateZ ONLY — this element carries the
-   view-transition-name, and a 3D perspective/rotateX here corrupts the VT
-   snapshot and makes the row→grid morph skip; the in-space 3D feel comes from
-   the flight pose and the per-card hover tilt inside DogCard). Straightens
-   and lifts on hover. */
-.scout-tilt {
-  transform: rotate(var(--tilt, 0deg));
-  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.3, 1);
-  will-change: transform;
-}
-.scout-tilt:hover {
-  transform: rotate(0deg) translateY(-6px);
-  z-index: 5;
-}
-
 /* ------------------------------------------------------------------ */
 /* The sift: while matching runs, trading cards continuously fly in,    */
 /* drift past the prompt box (some behind its frosted glass, some in    */
@@ -793,14 +783,18 @@ body {
 .scout-nameplate-hidden {
   opacity: 0;
 }
-.scout-card:hover {
-  box-shadow:
-    0 1.5px 0 -0.5px #e8ddc9,
-    0 2.5px 0 -0.5px rgba(41, 32, 26, 0.18),
-    0 2px 3px rgba(41, 32, 26, 0.14),
-    0 6px 10px -3px rgba(41, 32, 26, 0.12),
-    0 20px 36px -12px rgba(41, 32, 26, 0.34),
-    0 44px 80px -24px rgba(41, 32, 26, 0.3);
+/* hover-capable devices only — on touch, :hover latches after a tap and the
+   card's shadow would stay "lifted" until something else is tapped. */
+@media (hover: hover) {
+  .scout-card:hover {
+    box-shadow:
+      0 1.5px 0 -0.5px #e8ddc9,
+      0 2.5px 0 -0.5px rgba(41, 32, 26, 0.18),
+      0 2px 3px rgba(41, 32, 26, 0.14),
+      0 6px 10px -3px rgba(41, 32, 26, 0.12),
+      0 20px 36px -12px rgba(41, 32, 26, 0.34),
+      0 44px 80px -24px rgba(41, 32, 26, 0.3);
+  }
 }
 /* paper grain + printed hairline + edge light (top & left catch the light) */
 .scout-card::before {
