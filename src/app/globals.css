@@ -1178,6 +1178,14 @@ body {
   }
 }
 
+/* the extra dog-park tree exists ONLY for the phone crop (see DogParkScene) —
+   the desktop scene already has trees in its wings, so hide it there. */
+@media (min-width: 640px) {
+  .scout-scene-mobile {
+    display: none;
+  }
+}
+
 /* the query as the scene's centerpiece: a thick white halo (a real paint-like
    border, not a hairline) + soft drop shadow, so it stays legible and feels
    lifted above the orbiting cards that pass in front of and behind it. The

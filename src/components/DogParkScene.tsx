@@ -133,11 +133,14 @@ export default function DogParkScene() {
         </svg>
       </div>
 
-      {/* hills — tall band anchored to the bottom; the far crest is the horizon.
-          Raised high enough that the crest sits UNDER the hero dog, so he reads
-          as standing on the grass, not floating above it. */}
+      {/* hills — band anchored to the bottom; the far crest is the horizon.
+          On mobile the wide viewBox + xMidYMax slice zooms hard to cover height,
+          so an over-tall band shoves the horizon up near the sun and magnifies
+          everything — keep it shorter there (horizon ~40%, the intended spot,
+          with the crest still under the hero dog). Desktop shows more width, so
+          it can stay taller. */}
       <svg
-        className="absolute inset-x-0 bottom-0 h-[88vh] w-full sm:h-[84vh]"
+        className="absolute inset-x-0 bottom-0 h-[66vh] w-full sm:h-[84vh]"
         viewBox="0 0 2880 620"
         preserveAspectRatio="xMidYMax slice"
         fill="none"
@@ -217,6 +220,13 @@ export default function DogParkScene() {
         <Tree x={2180} y={216} s={0.82} variant="pine" tone={1} seed={203} flip />
         <Tree x={2430} y={226} s={1.0} variant="oak" tone={3} seed={266} />
         <Tree x={2620} y={230} s={1.12} variant="oak" tone={4} seed={311} flip />
+        {/* MOBILE ONLY — the phone crop (x≈1223–1657) sees none of the trees
+            above, which all sit in the wings. This one lands in that band so a
+            tree always shows on a phone; hidden ≥640px (see .scout-scene-mobile
+            in globals) so it never clutters the desktop center lockup. */}
+        <g className="scout-scene-mobile">
+          <Tree x={1590} y={210} s={1.12} variant="oak" tone={2} seed={175} />
+        </g>
 
         {/* FRONT GRASS */}
         <path d={FRONT_BAND} fill="url(#hillFront)" />
