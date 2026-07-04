@@ -1154,6 +1154,17 @@ body {
   transform-style: preserve-3d;
   will-change: transform;
 }
+/* On phones the hand wraps to two rows (the fan is nowrap only at sm+). The
+   arc dip (--fan-y, from off²) and slide (--fan-x) are computed across ALL
+   picks, so once the row splits they push cards into the other line and it
+   reads as a lopsided pile, not a fan. Below the wrap breakpoint, drop the
+   dip/slide and ease the rotation right down so each wrapped row sits as a
+   tidy, near-upright line. */
+@media (max-width: 639px) {
+  .scout-fan {
+    transform: rotateZ(calc(var(--fan-rot, 0deg) * 0.4)) rotateX(6deg);
+  }
+}
 
 /* the query as the scene's centerpiece: a thick white halo (a real paint-like
    border, not a hairline) + soft drop shadow, so it stays legible and feels
