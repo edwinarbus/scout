@@ -72,11 +72,6 @@ const PLUCK_MS = 820;
  *  visibly board the orbit before we start pulling them out ("wait for the
  *  right cards" — priority spawns ≈ 8 × 200ms + entry flight). */
 const FOCUS_MS = 2100;
-/** Once the deep read lands, give the fan time to re-sort/swap to the AI's
- *  genuine best fits (the .scout-fan CSS transition is 0.45s) BEFORE handing
- *  off to the grid — otherwise the correction and the phase flip land in the
- *  same frame and the fan never visibly reflects the real top picks. */
-const SHARPEN_MS = 550;
 /** View Transitions support — without it the fan falls back to the scout-lay
  *  swoop-in (the ranking view never server-renders, so this is hydration-safe).
  *  Deliberately OFF below the mobile breakpoint too: WebKit's implementation
@@ -629,30 +624,33 @@ export default function ScoutApp() {
         const full = await fullPromise;
         if (seq !== searchSeq.current) return;
 
-        // The deep read may have sharpened WHO the genuine best fits are (or
-        // dropped a deterministic pick that didn't actually fit) — apply it
-        // now, still in "ranking", so the fan itself re-sorts/swaps to match
-        // before the hand-off. Otherwise this update would land in the exact
-        // same frame as the phase flip and the corrected picks would never be
-        // visibly previewed in the top-picks row.
-        if (full.ok) {
-          setAi({
-            ...filterState,
-            reranked: !!full.r.reranked,
-            results: full.r.results as AiResult[],
-          });
-          await sleep(SHARPEN_MS);
-          if (seq !== searchSeq.current) return;
-        }
-
         // let the finished hand rest a beat before the grid takes over
         await sleep(700);
         if (seq !== searchSeq.current) return;
 
-        // 4 — hand the shortlist off into the scored grid. The results section
-        // already sits at the top of the scroll area — no autoscroll; the page
-        // simply resolves in place at the top.
-        withViewTransition(() => setPhase("done")); // screened order + note
+        // 4 — hand the shortlist off into the scored grid. The fan's picks stay
+        // EXACTLY as plucked — the deep read's corrected order/scores land in
+        // the SAME batch as the phase flip, so there's no separate moment where
+        // the fan visibly re-sorts or swaps identities before the hand-off (that
+        // read as the top-picks row randomly changing right before the grid
+        // appeared). Each fan card's shared view-transition name still carries
+        // it smoothly into wherever it actually lands in the grid — including a
+        // pick the deep read decided didn't fit, which just fades out on its
+        // own instead of the whole row flashing. The results section already
+        // sits at the top of the scroll area — no autoscroll; the page simply
+        // resolves in place at the top.
+        if (full.ok) {
+          withViewTransition(() => {
+            setAi({
+              ...filterState,
+              reranked: !!full.r.reranked,
+              results: full.r.results as AiResult[],
+            });
+            setPhase("done");
+          });
+        } else {
+          withViewTransition(() => setPhase("done")); // screened order + note
+        }
       } catch (e) {
         if (seq !== searchSeq.current) return;
         setAskError(e instanceof Error ? e.message : String(e));

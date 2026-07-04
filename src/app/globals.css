@@ -63,6 +63,11 @@ body {
   background: var(--color-canvas);
   color: var(--color-ink-900);
   font-family: var(--font-sans);
+  /* Backstop for the viewport meta's maximumScale/userScalable: some browsers
+     still allow a double-tap-to-zoom gesture regardless of that meta tag.
+     touch-action removes double-tap zoom specifically (normal scrolling and
+     the app's own tap/drag interactions are untouched). */
+  touch-action: manipulation;
 }
 
 /* a single, coherent custom focus ring for keyboard users everywhere */
@@ -1293,6 +1298,21 @@ body {
 ::view-transition-group(*) {
   animation-duration: 0.8s;
   animation-timing-function: cubic-bezier(0.32, 0.72, 0.15, 1);
+}
+/* root's own crossfade above is already instant (animation:none + fixed
+   opacity) — but root's GROUP still inherited the 0.8s wildcard duration,
+   which pins its static full-page snapshot pair on top of the live DOM for
+   that whole window (a view transition doesn't hand rendering back to the
+   real page for any element until every group's animation finishes, not just
+   the ones actually animating). During a swirl pluck — one view transition
+   PER card, several in a row — everything else on screen is a real, still-
+   running CSS animation underneath that frozen root snapshot, so the entire
+   swirl reads as pausing for the same ~0.8s the plucked card takes to land.
+   Collapsing root's own group duration lets the live page show through again
+   almost immediately; the plucked card's OWN named group (matched by
+   ::view-transition-group(*) above) still gets the full 0.8s morph. */
+::view-transition-group(root) {
+  animation-duration: 1ms;
 }
 
 @media (prefers-reduced-motion: reduce) {

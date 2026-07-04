@@ -34,6 +34,13 @@ export const viewport: Viewport = {
   themeColor: "#1c8047",
   width: "device-width",
   initialScale: 1,
+  // Scout is a fixed app-shell layout (map/cards/matcher), not readable
+  // content — pinch/double-tap zoom has nothing useful to do here and mostly
+  // just gets triggered by accident on a phone. maximumScale locks it off;
+  // every input is still sized ≥16px (see below) as a second layer, since iOS
+  // can override userScalable for its own zoom accessibility features.
+  maximumScale: 1,
+  userScalable: false,
   // "cover" lets content draw under the iOS notch/Dynamic Island/home
   // indicator; safe-area-inset padding (where used) then reclaims that space
   // instead of leaving letterboxed bars around the app shell.

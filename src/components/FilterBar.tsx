@@ -77,7 +77,10 @@ export default function FilterBar({
         value={f.q}
         onChange={(e) => set({ q: e.target.value })}
         placeholder="Search name, breed, bio…"
-        className="mr-2 w-56 rounded-full bg-cream-100 px-3.5 py-1.5 text-[13px] text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-terra-500/40"
+        // text-base (16px), not the smaller 13px this box reads at everywhere
+        // else: iOS Safari auto-zooms the page on focus for any input
+        // rendering text under 16px.
+        className="mr-2 w-56 rounded-full bg-cream-100 px-3.5 py-1.5 text-base text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-terra-500/40"
       />
 
       {(["small", "medium", "large", "xlarge"] as const).map((s) => (
