@@ -19,6 +19,15 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: { icon: "/icon.svg", apple: "/apple-touch-icon.png" },
   appleWebApp: { capable: true, title: "Scout", statusBarStyle: "default" },
+  // Personal, single-user tool — never meant to be discoverable or indexed.
+  // robots.ts + the X-Robots-Tag header (next.config.ts) back this up so no
+  // route (including non-HTML ones) is missed.
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: { index: false, follow: false, noimageindex: true },
+  },
 };
 
 export const viewport: Viewport = { themeColor: "#1c8047" };
