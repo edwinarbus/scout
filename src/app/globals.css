@@ -770,7 +770,11 @@ body {
    snapping from "none") but fully transparent, so the shadow fades IN rather
    than popping in the instant the modal hands the slot back. See
    CardExpanded's close(): the class is added before reveal, removed right
-   after, letting this transition carry it. */
+   after, letting this transition carry it. Also fades out ::before (the
+   printed hairline "border" + paper grain, see below) — that pseudo-element
+   has its own box-shadow that this class didn't originally touch, so the
+   outer drop shadow used to fade in smoothly while the hairline border
+   popped in instantly right alongside it, one frame later. */
 .scout-card-reveal-hidden {
   box-shadow:
     0 1.5px 0 -0.5px rgba(232, 221, 201, 0),
@@ -779,6 +783,9 @@ body {
     0 4px 6px -2px rgba(41, 32, 26, 0),
     0 12px 24px -10px rgba(41, 32, 26, 0),
     0 28px 56px -20px rgba(41, 32, 26, 0);
+}
+.scout-card-reveal-hidden::before {
+  opacity: 0;
 }
 /* the name/breed/stats plate (see CardFace) — fades in alongside the shadow
    above on the same reveal, instead of snapping in with it. */
@@ -815,6 +822,7 @@ body {
     inset 1px 0 0 rgba(255, 255, 255, 0.4);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.08'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   mix-blend-mode: multiply;
+  transition: opacity 0.4s ease;
 }
 /* the photo reads as printed onto the cardstock — a single clean hairline
    keyline frames it (no inset shadow "well", which looked sunken/glassy). */
@@ -1236,14 +1244,16 @@ body {
   -webkit-backface-visibility: hidden;
 }
 /* Safari doesn't fully respect backface-visibility for box-shadow on a
-   rotated 3D element — the front face's card shadow/hairline ring (from the
-   shared CardFace .scout-card styling) can leave a faint ghost outline
-   behind even once the face has turned away. The front face is transitional
+   rotated 3D element — any box-shadow from the shared CardFace styling (the
+   card's own hairline edge, AND the separate inset ring .scout-inset::after
+   draws around the recessed photo) can leave a faint ghost outline behind
+   even once the face has turned away. The front face is transitional
    (photo-only, hidden text) and the dossier already carries its own shadow
    via .scout-flip-plate, so the front card never needed its own — stripping
-   it removes the one thing that was leaking through. */
+   every box-shadow source on it removes what was leaking through. */
 .scout-flip-face .scout-card,
-.scout-flip-face .scout-card::before {
+.scout-flip-face .scout-card::before,
+.scout-flip-face .scout-inset::after {
   box-shadow: none;
 }
 /* the back is pre-turned a half-rotation so it reads correctly once the whole

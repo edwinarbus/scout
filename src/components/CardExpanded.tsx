@@ -374,39 +374,9 @@ export default function CardExpanded({
 
           {/* DOSSIER — the whole column scrolls */}
           <div className="relative min-h-0 min-w-0 flex-1">
-            {/* top-right: save (heart) + close */}
-            <div className="absolute right-3 top-3 z-10 flex items-center gap-1">
-              <button
-                type="button"
-                onClick={toggleSaved}
-                aria-pressed={saved}
-                aria-label={saved ? "Saved" : "Save"}
-                title={saved ? "Saved" : "Save"}
-                className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
-                  saved ? "bg-rose-50 text-rose-500" : "text-ink-400 hover:bg-cream-100 hover:text-rose-500"
-                }`}
-              >
-                {/* Lucide heart — symmetric around the 24×24 center, so it sits
-                    centered in the round button */}
-                <svg viewBox="0 0 24 24" className={`h-[20px] w-[20px] transition-transform ${saved ? "scale-110" : ""} active:scale-90`} fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.49 4.04 3 5.5l7 7Z" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={close}
-                aria-label="Close"
-                className="flex h-9 w-9 items-center justify-center rounded-full text-ink-400 transition hover:bg-cream-100 hover:text-ink-700"
-              >
-                <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
-                  <path d="M6 6l12 12M18 6L6 18" />
-                </svg>
-              </button>
-            </div>
-
             <div ref={scrollRef} className="scout-scroll h-full overflow-y-auto overscroll-contain px-6 pb-6 pt-8">
               {/* name + vitals */}
-              <div className="pr-20">
+              <div className="sm:pr-20">
                 <h2 className="font-display text-[27px] font-extrabold leading-[1.05] text-ink-900">
                   {dog.name ?? "Unnamed"}
                 </h2>
@@ -527,6 +497,42 @@ export default function CardExpanded({
                 </p>
               )}
             </div>
+          </div>
+
+          {/* top-right: save (heart) + close. A sibling of the hero photo and
+              the dossier text (not nested in either), so it's positioned
+              against their shared box: on mobile (stacked) that box's top
+              edge is the photo, so the buttons sit over the carousel; on
+              desktop (side-by-side) it lands at the text column's top-right,
+              same as before. White circles at all times (not just on hover)
+              so the icons stay legible over any photo. */}
+          <div className="absolute right-3 top-3 z-20 flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={toggleSaved}
+              aria-pressed={saved}
+              aria-label={saved ? "Saved" : "Save"}
+              title={saved ? "Saved" : "Save"}
+              className={`flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-md ring-1 ring-black/5 transition ${
+                saved ? "text-rose-500" : "text-ink-400 hover:text-rose-500"
+              }`}
+            >
+              {/* Lucide heart — symmetric around the 24×24 center, so it sits
+                  centered in the round button */}
+              <svg viewBox="0 0 24 24" className={`h-[20px] w-[20px] transition-transform ${saved ? "scale-110" : ""} active:scale-90`} fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.49 4.04 3 5.5l7 7Z" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={close}
+              aria-label="Close"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-ink-500 shadow-md ring-1 ring-black/5 transition hover:text-ink-900"
+            >
+              <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
