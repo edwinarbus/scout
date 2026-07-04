@@ -1,0 +1,1 @@
+ALTER TABLE `adoption_sources` ADD `robots_override_reason` text;

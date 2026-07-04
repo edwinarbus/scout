@@ -1,0 +1,391 @@
+
+			<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+			<html>
+			<head>
+				<title>Marin Humane</title>
+                <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript" src="/jscript/common.js?v=1720"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.7.3/jquery-ui.min.js"></script>
+	<script language="javascript" type="text/javascript" src="/jscript/jquery.fancybox.pack.js?v=1720"></script>
+				<script language="javascript" type="text/javascript" src="/jscript/jquery.qtip.min.js?1720"></script>
+<link type="text/css" href="/css/jquery-ui.css?1720" rel="stylesheet" />
+<link type="text/css" href="/css/jquery.qtip.min.css?1720" rel="stylesheet" />
+ <script language="javascript" type="text/javascript" src="/customise/js/SearchResults.js?1720"></script> 
+ <script language="javascript" type="text/javascript" src="/jscript/jquery.ba-bbq.min.js?1720"></script> 
+ <link rel="stylesheet" type="text/css" href="/customise/css/SearchResults.css?1720">
+				<link rel="stylesheet" type="text/css" href="/customise/style.css">
+    <link rel="stylesheet" type="text/css" href="">
+				<link rel="stylesheet" type="text/css" href="/css/generic.css" />
+				<script language="javascript" type="text/javascript" src="/jscript/browserCheck.js"></script>
+<script language="javascript" type="text/javascript" src="/jscript/xmlHttp.js"></script>
+<script language="javascript" type="text/javascript" src="/jscript/arraySelect.js"></script>
+<script language="javascript" type="text/javascript" src="/jscript/disableField.js"></script>
+<script language="javascript" type="text/javascript">
+
+function clearmodels(theList) 
+{
+	//clears the select list
+	var count = theList.length;
+	var i;
+	for(i=1 ; i<count ; i++)
+	{ 
+		theList[1]= null;
+	}
+}
+
+function animalTypeChangeByAdoptableCanine(frm, isShowingBreedSearchForCanines)
+{
+	//this function runs for onchange even of animal type.
+	//assume that the form has a FERAL field.
+	var oldType;
+	var animalType = frm.animalType.value;
+	
+	//A rather awesome fix for Adult/Juvenile searches
+	animalType = animalType.split(",",1);
+
+	if(!isShowingBreedSearchForCanines && (animalType[0] === "3" || animalType[0] === "16"))
+	{
+		$(".breed-search").addClass("hide");
+	}
+	else
+	{
+		$(".breed-search").removeClass("hide");
+	}
+	
+	callAjaxEval("/search/colourAjax.asp?formName="+ frm.name +"&animalType="+ animalType +"&defaultPrimary=" + frm.colour.value + "&defaultSecondary=" + frm.colour2.value, "");	
+	
+	var b1 = frm.breed;
+	var b2 = frm.breedHidden;
+    var hb1 = frm.breed2;
+	var hb2 = frm.breed2Hidden;
+	
+	b1.value="";
+	b2.value="";
+	hb1.value="";
+	hb2.value="";
+}
+
+function animalTypeChange (frm)
+{	
+	animalTypeChangeByAdoptableCanine(frm, null)	
+}
+
+function changeStatusDate()
+{
+	document.form.statusdate.value = "7/1/2026";
+	
+	//make the petdetect drop out date the value of the status date
+	if (document.form.status.value == 10)
+	{	
+		document.form.petDetectDate.value = "7/11/2026 11:52:52 AM";
+	}
+}
+
+</script>
+
+<script language="javascript" type="text/javascript">
+<!--
+function newWindowBar(url, target)
+{
+	window.open(url,target,
+		'left=100,top=100,width=650,height=450,location=yes,menubar=yes,toolbar=yes,resizable,scrollbars,status');
+}
+-->
+</script>
+                
+			</head>
+			<body >
+
+<div id="contentmain" >
+
+	<div id="topmenu"></div>
+
+
+		
+
+<div id="contentpane">
+    <h1 id="heading">Marin Humane Adoptable Pets </h1>
+
+    <script language="javascript" type="text/javascript" src="/jscript/NewWindow.js"></script>
+
+    <p class="page_link return-to-search-results-link">
+        <a class="pageLink" href="/search/default.asp?advanced=&searchType=4&s="><span class="green_arrow">&lt;</span>
+        &nbsp;Return to Search Page
+        </a>
+    </p>
+
+    
+Search results are listed in this order:<br />
+Alphabetically by primary breed
+    <p>
+        <form name="form" action="searchResults.asp?task=search&searchType=4&animalType=3%2C16&distance=10&submitbtn=Find" method="post" id="Form2">
+            Results per page: 
+            <select name="resultsPerPage" id="resultsPerPage" onchange="this.form.submit()">
+            
+                <option value="15" selected>15</option>
+            
+                <option value="25" >25</option>
+            
+                <option value="35" >35</option>
+            
+                <option value="45" >45</option>
+            
+                <option value="55" >55</option>
+            
+                <option value="65" >65</option>
+            
+                <option value="75" >75</option>
+            
+            </select>
+        </form>
+    </p>
+    
+        <table rows="1" cols="1" style="width:400px;" id="searchPageTableTop">
+            <tr style="text-align:center;">
+                <td style="text-align:center; font-size:16px;font-weight:bold;">                    
+        <b class="SearchResultsPageLink">1</b><a class="hide" id="searchPageLink1" href='/search/searchResults.asp?searchType=4&animalType=3%2C16&distance=10&submitbtn=Find&pagesize=15&task=view&searchTypeId=4&tpage=1'>1</a> <a class="SearchResultsPageLink" id="searchPageLink2" href='/search/searchResults.asp?searchType=4&animalType=3%2C16&distance=10&submitbtn=Find&pagesize=15&task=view&searchTypeId=4&tpage=2'>2</a>&nbsp;<a style="padding-left:20px;" class="SearchResultsPageLink" href='/search/searchResults.asp?searchType=4&animalType=3%2C16&distance=10&submitbtn=Find&pagesize=15&task=view&searchTypeId=4&tpage=2'>&gt;&gt;</a>
+                    <br>
+                </td>
+            </tr>
+        </table>        
+    
+            <fieldset class="search-results-fieldset">
+                <table class="search-results-table">
+                <tr><td class='searchResultsCell'>
+
+<!-- tr><td class="searchResultsCell" -->
+				<div class='search-results-image-div'>
+					<a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44235">
+						<img src="https://mhs.shelterbuddy.com/storage/image/b34ae3ded34b4987998373c7507a9dc6-1775072696-1782937964-jpg/600---n" class="pic" alt="click to view animal details" align="left" style=""/></a>
+					</div><div class='search-results-details-div'>
+                    <a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44235">Ricky</a><br />
+                Australian Cattledog/Belgian Malinois<br>Spayed / Neutered
+						<br>Male - 10Mths 1Wks (approx)
+				<br />
+				<a class="search-results-view-details-link" href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44235">View Details</a>
+				</td>
+				
+				</div></td><td class='searchResultsCell'>
+
+<!-- tr><td class="searchResultsCell" -->
+				<div class='search-results-image-div'>
+					<a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45367">
+						<img src="https://mhs.shelterbuddy.com/storage/image/ab3535029e0743d994a8fffe37c4a0e2-1782694420-1782694428-jpg/600---n" class="pic" alt="click to view animal details" align="left" style=""/></a>
+					</div><div class='search-results-details-div'>
+                    <a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45367">Nala</a><br />
+                Australian Shepherd/Siberian Husky<br>Spayed / Neutered
+						<br>Female - 1Yrs 2Wks 
+				<br />
+				<a class="search-results-view-details-link" href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45367">View Details</a>
+				</td>
+				
+				</div></td><td class='searchResultsCell'>
+
+<!-- tr><td class="searchResultsCell" -->
+				<div class='search-results-image-div'>
+					<a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45229">
+						<img src="https://mhs.shelterbuddy.com/storage/image/bff81685189848f799c73faa0e52ac0c-1782666812-1782666817-jpeg/600---n" class="pic" alt="click to view animal details" align="left" style=""/></a>
+					</div><div class='search-results-details-div'>
+                    <a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45229">Zero</a><br />
+                Boxer/Siberian Husky<br>Spayed / Neutered
+						<br>Male - 1Yrs 7Mths 2Wks 
+				<br />
+				<a class="search-results-view-details-link" href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45229">View Details</a>
+				</td>
+				
+				</div></td></tr><tr><td class='searchResultsCell'>
+
+<!-- tr><td class="searchResultsCell" -->
+				<div class='search-results-image-div'>
+					<a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45501">
+						<img src="https://mhs.shelterbuddy.com/storage/image/713d49da28774f23b2ac49176fc6c987-1782950500-1782950508-jpg/600---n" class="pic" alt="click to view animal details" align="left" style=""/></a>
+					</div><div class='search-results-details-div'>
+                    <a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45501">Chimichanga</a><br />
+                French Bulldog/Pug
+						<br>Male - 4Yrs (approx)
+				<br />
+				<a class="search-results-view-details-link" href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45501">View Details</a>
+				</td>
+				
+				</div></td><td class='searchResultsCell'>
+
+<!-- tr><td class="searchResultsCell" -->
+				<div class='search-results-image-div'>
+					<a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=43723">
+						<img src="https://mhs.shelterbuddy.com/storage/image/208ac824f8b74bf682247f1219eae200-1777574685-1777574699-jpg/600---n" class="pic" alt="click to view animal details" align="left" style=""/></a>
+					</div><div class='search-results-details-div'>
+                    <a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=43723">Charlotte</a><br />
+                German Shepherd/Doberman Pinscher<br>Spayed / Neutered
+						<br>Female - 1Yrs 2Mths 1Wks (approx)
+				<br />
+				<a class="search-results-view-details-link" href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=43723">View Details</a>
+				</td>
+				
+				</div></td><td class='searchResultsCell'>
+
+<!-- tr><td class="searchResultsCell" -->
+				<div class='search-results-image-div'>
+					<a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44522">
+						<img src="https://mhs.shelterbuddy.com/storage/image/e70ed6d968ed43cbbf7cb69a52dc18ae-1770855033-1770855054-jpg/600---n" class="pic" alt="click to view animal details" align="left" style=""/></a>
+					</div><div class='search-results-details-div'>
+                    <a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44522">Mia</a><br />
+                German Shepherd/Rottweiler<br>Spayed / Neutered
+						<br>Female - 7Yrs 5Mths 
+				<br />
+				<a class="search-results-view-details-link" href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44522">View Details</a>
+				</td>
+				
+				</div></td></tr><tr><td class='searchResultsCell'>
+
+<!-- tr><td class="searchResultsCell" -->
+				<div class='search-results-image-div'>
+					<a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44875">
+						<img src="https://mhs.shelterbuddy.com/storage/image/4d762131ac5d4e9fbddf26cbc4df4302-1782088074-1782088079-jpg/600---n" class="pic" alt="click to view animal details" align="left" style=""/></a>
+					</div><div class='search-results-details-div'>
+                    <a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44875">Nelly</a><br />
+                German Shepherd cross<br>Spayed / Neutered
+						<br>Female - 1Yrs 5Mths 
+				<br />
+				<a class="search-results-view-details-link" href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44875">View Details</a>
+				</td>
+				
+				</div></td><td class='searchResultsCell'>
+
+<!-- tr><td class="searchResultsCell" -->
+				<div class='search-results-image-div'>
+					<a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44929">
+						<img src="https://mhs.shelterbuddy.com/storage/image/12a5063ce92747fd8ff6d844faf540f7-1782928989-1782928996-jpg/600---n" class="pic" alt="click to view animal details" align="left" style=""/></a>
+					</div><div class='search-results-details-div'>
+                    <a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44929">Sandy</a><br />
+                German Shepherd cross<br>Spayed / Neutered
+						<br>Female - 2Yrs 2Mths 
+				<br />
+				<a class="search-results-view-details-link" href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44929">View Details</a>
+				</td>
+				
+				</div></td><td class='searchResultsCell'>
+
+<!-- tr><td class="searchResultsCell" -->
+				<div class='search-results-image-div'>
+					<a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45312">
+						<img src="https://mhs.shelterbuddy.com/storage/image/e6fd1dd2e3fc48a1bb2cc86eaf78edbe-1782929498-1782929502-jpg/600---n" class="pic" alt="click to view animal details" align="left" style=""/></a>
+					</div><div class='search-results-details-div'>
+                    <a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45312">Kali</a><br />
+                German Shepherd cross<br>Spayed / Neutered
+						<br>Female - 2Yrs 1Mths 2Wks (approx)
+				<br />
+				<a class="search-results-view-details-link" href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45312">View Details</a>
+				</td>
+				
+				</div></td></tr><tr><td class='searchResultsCell'>
+
+<!-- tr><td class="searchResultsCell" -->
+				<div class='search-results-image-div'>
+					<a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44243">
+						<img src="https://mhs.shelterbuddy.com/storage/image/2b44b1fa76e7422197a55491d49c809e-1782665175-1782665182-jpg/600---n" class="pic" alt="click to view animal details" align="left" style=""/></a>
+					</div><div class='search-results-details-div'>
+                    <a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44243">Stella</a><br />
+                Mastiff/Boxer
+						<br>Female - 1Yrs 2Mths (approx)
+				<br />
+				<a class="search-results-view-details-link" href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44243">View Details</a>
+				</td>
+				
+				</div></td><td class='searchResultsCell'>
+
+<!-- tr><td class="searchResultsCell" -->
+				<div class='search-results-image-div'>
+					<a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45513">
+						<img src="https://mhs.shelterbuddy.com/storage/image/3faf912532114a83bea6f0bb891dd828-1781834446-1781834482-jpg/600---n" class="pic" alt="click to view animal details" align="left" style=""/></a>
+					</div><div class='search-results-details-div'>
+                    <a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45513">Zion</a><br />
+                Mastiff cross<br>Spayed / Neutered
+						<br>Male - 10Mths 2Wks (approx)
+				<br />
+				<a class="search-results-view-details-link" href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45513">View Details</a>
+				</td>
+				
+				</div></td><td class='searchResultsCell'>
+
+<!-- tr><td class="searchResultsCell" -->
+				<div class='search-results-image-div'>
+					<a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44887">
+						<img src="https://mhs.shelterbuddy.com/storage/image/0a31456cafdb4c818a4ce0298a370d7d-1780083229-1781455673-jpg/600---n" class="pic" alt="click to view animal details" align="left" style=""/></a>
+					</div><div class='search-results-details-div'>
+                    <a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44887">Cairo</a><br />
+                Pit Bull/Siberian Husky<br>Spayed / Neutered
+						<br>Male - 10Mths 3Wks (approx)
+				<br />
+				<a class="search-results-view-details-link" href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44887">View Details</a>
+				</td>
+				
+				</div></td></tr><tr><td class='searchResultsCell'>
+
+<!-- tr><td class="searchResultsCell" -->
+				<div class='search-results-image-div'>
+					<a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44970">
+						<img src="https://mhs.shelterbuddy.com/storage/image/35aee088b8ae4631b4e225e04474d4eb-1779319038-1779319056-png/600---n" class="pic" alt="click to view animal details" align="left" style=""/></a>
+					</div><div class='search-results-details-div'>
+                    <a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44970">Oakley</a><br />
+                Pit Bull cross<br>Spayed / Neutered
+						<br>Male - 8Mths 2Wks 
+				<br />
+				<a class="search-results-view-details-link" href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=44970">View Details</a>
+				</td>
+				
+				</div></td><td class='searchResultsCell'>
+
+<!-- tr><td class="searchResultsCell" -->
+				<div class='search-results-image-div'>
+					<a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45564">
+						<img src="https://mhs.shelterbuddy.com/storage/image/d9e7c2f8819f4ffd88d9495339737fcb-1782925567-1782925622-jpg/600---n" class="pic" alt="click to view animal details" align="left" style=""/></a>
+					</div><div class='search-results-details-div'>
+                    <a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45564">Kida</a><br />
+                Pit Bull cross<br>Spayed / Neutered
+						<br>Female - 4Yrs 8Mths (approx)
+				<br />
+				<a class="search-results-view-details-link" href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45564">View Details</a>
+				</td>
+				
+				</div></td><td class='searchResultsCell'>
+
+<!-- tr><td class="searchResultsCell" -->
+				<div class='search-results-image-div'>
+					<a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45543">
+						<img src="https://mhs.shelterbuddy.com/storage/image/c5a4c53df41640929708122fad72392f-1782935032-1782935037-jpg/600---n" class="pic" alt="click to view animal details" align="left" style=""/></a>
+					</div><div class='search-results-details-div'>
+                    <a href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45543">Lady</a><br />
+                Schnauzer/Siberian
+						<br>Female - 1Yrs 4Wks (approx)
+				<br />
+				<a class="search-results-view-details-link" href="/animal/animalDetails.asp?task=search&amp;animalType=3%2C16&amp;distance=10&amp;submitbtn=Find&amp;tpage=1&amp;searchType=4&amp;animalid=45543">View Details</a>
+				</td>
+				
+				</div></td></tr></table></fieldset>
+        <table rows="1" cols="1" style="width:400px;" id="searchPageTableBottom">
+            <tr style="text-align:center;">
+                <td style="text-align:center; font-size:16px;font-weight:bold;">                    
+        <b class="SearchResultsPageLink">1</b><a class="hide" id="searchPageLink1" href='/search/searchResults.asp?searchType=4&animalType=3%2C16&distance=10&submitbtn=Find&pagesize=15&task=view&searchTypeId=4&tpage=1'>1</a> <a class="SearchResultsPageLink" id="searchPageLink2" href='/search/searchResults.asp?searchType=4&animalType=3%2C16&distance=10&submitbtn=Find&pagesize=15&task=view&searchTypeId=4&tpage=2'>2</a>&nbsp;<a style="padding-left:20px;" class="SearchResultsPageLink" href='/search/searchResults.asp?searchType=4&animalType=3%2C16&distance=10&submitbtn=Find&pagesize=15&task=view&searchTypeId=4&tpage=2'>&gt;&gt;</a>
+                    <br>
+                </td>
+            </tr>
+        </table>        
+    
+</div>
+</div>
+
+			</body>
+
+		</html>
+		
+
+<script language="javascript" type="text/javascript">
+
+    $(document).ready(function() 
+    {
+        initQtip();     //jscript/common.js
+        
+    });  //document.ready
+
+</script>
+

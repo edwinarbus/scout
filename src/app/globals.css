@@ -1,0 +1,1323 @@
+@import "tailwindcss";
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+@theme {
+  --font-sans: var(--font-nunito), ui-rounded, system-ui, sans-serif;
+  --font-display: var(--font-baloo), var(--font-nunito), ui-rounded, system-ui, sans-serif;
+
+  /* Dog-park palette — open sky, rolling grass, warm white, deep navy ink, a
+     sunny-yellow micro-accent. Grass green is the PRIMARY (CTA/focus), sky blue
+     the secondary. Deliberately NOT SaaS-blue / beige / orange / gray. Token
+     NAMES stay historical so the rest of the app is untouched; roles now:
+
+       canvas   → sky background       cream-50  → surface (raised white)
+       cream-100→ soft grass-tint fill cream-200 → border (blue/green gray)
+       ink-*    → navy ink / muted     terra-*   → PRIMARY grass green (CTA)
+       sky-*    → sky blue (secondary) meadow-*  → bright grass (badges)
+       sun-*    → sunny yellow accent  hill-*    → scene fills (no text)
+       focus    → focus ring (grass) */
+  --color-canvas: #e9f6ff; /* page base — open sky */
+  --color-cream-50: #ffffff; /* raised surface — white */
+  --color-cream-100: #eef5ee; /* soft grass-tinted fill */
+  --color-cream-200: #d3e5db; /* hairline border — blue/green gray */
+
+  --color-ink-900: #16262b; /* deep navy-slate — primary text */
+  --color-ink-700: #32464d; /* strong secondary text */
+  --color-ink-500: #5a6f77; /* muted text (AA on white) */
+  --color-ink-400: #7d9199; /* faint text / placeholders */
+  --color-ink-300: #a1b2b8; /* softest hints only (non-essential) */
+
+  /* PRIMARY — grass green (deep enough for white text: ~5:1 on #1c8047) */
+  --color-terra-500: #1c8047;
+  --color-terra-600: #155f36;
+  /* SECONDARY — sky blue (a real sky, not SaaS indigo) */
+  --color-sky-100: #dcefff;
+  --color-sky-500: #2f8fd6;
+  --color-sky-600: #1f72b3;
+  /* tiny lavender accent (optional) */
+  --color-lilac-100: #efeafe;
+  --color-lilac-500: #9a86ef;
+  --color-lilac-600: #7c66e6;
+  /* sunny yellow — micro-accent (sun, tiny highlights) */
+  --color-sun-100: #fff3cf;
+  --color-sun-400: #ffcf4d;
+  /* bright grass — top-pick badge / highlights */
+  --color-meadow-100: #dcf1e2;
+  --color-meadow-500: #2fa85c;
+
+  /* scene fills — illustration only, never text */
+  --color-hill-1: #bde8ac; /* far hill (light) */
+  --color-hill-2: #8ad58c; /* mid hill */
+  --color-hill-3: #57bd6e; /* front grass */
+
+  --color-honey-400: #c9871e; /* long-stay amber (on light) */
+  --color-focus: #1c8047; /* focus ring — grass green */
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink-900);
+  font-family: var(--font-sans);
+}
+
+/* a single, coherent custom focus ring for keyboard users everywhere */
+:where(a, button, textarea, input, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+/* …but NOT the dog cards — the focus ring around a trading card reads as clutter
+   (esp. when focus returns to the card after its profile closes) */
+.scout-flip-scene button:focus-visible,
+.scout-fan-slot:focus-visible,
+.scout-liftable button:focus-visible {
+  outline: none;
+}
+/* ...except the prompt textarea — the pill itself is the focus indicator
+   (.scout-promptcard:focus-within halo), so its field shows no inner ring */
+.scout-promptcard textarea:focus,
+.scout-promptcard textarea:focus-visible {
+  outline: none;
+}
+
+/* the prompt box — the hero object. Tactile paper card that lifts a hair and
+   gains a soft periwinkle focus halo when the field inside is focused. */
+.scout-promptcard {
+  border: 1px solid rgba(22, 27, 40, 0.09);
+  box-shadow:
+    0 1px 2px rgba(22, 27, 40, 0.04),
+    0 12px 32px -16px rgba(22, 27, 40, 0.22);
+  transition:
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease;
+}
+.scout-promptcard:focus-within {
+  border-color: color-mix(in srgb, var(--color-terra-500) 60%, transparent);
+  transform: translateY(-2px);
+  box-shadow:
+    0 2px 4px rgba(22, 39, 30, 0.05),
+    0 20px 46px -20px rgba(21, 95, 54, 0.3),
+    0 0 0 4px color-mix(in srgb, var(--color-terra-500) 16%, transparent);
+}
+
+/* the primary call-to-action — a friendly, tactile grass-green park badge */
+.scout-cta {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 2px 4px rgba(21, 95, 54, 0.24),
+    0 8px 18px -6px rgba(28, 128, 71, 0.44);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+.scout-cta:hover:not(:disabled) {
+  background-color: var(--color-terra-600);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 3px 6px rgba(21, 95, 54, 0.3),
+    0 12px 24px -6px rgba(28, 128, 71, 0.54);
+}
+.scout-cta:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow:
+    inset 0 2px 4px rgba(12, 60, 33, 0.3),
+    0 1px 2px rgba(21, 95, 54, 0.3);
+}
+
+/* example tags — quiet, flat suggestion chips (not toy buttons / coupons).
+   A whisper of lift and a border tint on hover; no rotation, no bounce. */
+.scout-tag {
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    color 0.16s ease;
+}
+@media (hover: hover) {
+  .scout-tag:hover {
+    transform: translateY(-1px);
+  }
+}
+.scout-tag:active {
+  transform: translateY(0);
+}
+
+/* landing canvas texture — an almost-invisible field-guide grid (precise, not
+   wavy template lines), masked so it fades out toward the edges. Reads as fine
+   paper/map ruling, never as decoration. */
+.scout-contours {
+  background-image:
+    linear-gradient(to right, rgba(22, 27, 40, 0.028) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(22, 27, 40, 0.028) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center top;
+  -webkit-mask-image: radial-gradient(120% 80% at 60% 8%, #000 30%, transparent 78%);
+  mask-image: radial-gradient(120% 80% at 60% 8%, #000 30%, transparent 78%);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* ------------------------------------------------------------------ */
+/* Dog-park mascot + scene motion — subtle, performant idle life.      */
+/* transform-box: fill-box so each SVG part animates around its own     */
+/* bounding box, not the SVG's (0,0) origin.                            */
+/* ------------------------------------------------------------------ */
+/* All mascot motion is deliberately SUBTLE — slow, small, occasional. The tail
+   rests still, then wags in a short happy burst every few seconds. */
+@keyframes scout-wag {
+  0%,
+  66%,
+  100% {
+    transform: rotate(0deg);
+  }
+  72% {
+    transform: rotate(13deg);
+  }
+  78% {
+    transform: rotate(-7deg);
+  }
+  84% {
+    transform: rotate(11deg);
+  }
+  90% {
+    transform: rotate(-5deg);
+  }
+  96% {
+    transform: rotate(3deg);
+  }
+}
+.scout-wag {
+  transform-box: fill-box;
+  transform-origin: 16% 90%;
+  animation: scout-wag 5s ease-in-out infinite;
+}
+@keyframes scout-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  96% {
+    transform: scaleY(0.08);
+  }
+}
+.scout-blink {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: scout-blink 5.2s ease-in-out infinite;
+}
+@keyframes scout-breathe {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-0.8px) scale(1.008);
+  }
+}
+.scout-breathe {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: scout-breathe 4.5s ease-in-out infinite;
+}
+/* the perked ear flicks once in a while */
+@keyframes scout-ear {
+  0%,
+  86%,
+  100% {
+    transform: rotate(0deg);
+  }
+  89% {
+    transform: rotate(-9deg);
+  }
+  92% {
+    transform: rotate(4deg);
+  }
+  95% {
+    transform: rotate(-1deg);
+  }
+}
+.scout-ear {
+  transform-box: fill-box;
+  transform-origin: 50% 95%;
+  animation: scout-ear 6.5s ease-in-out infinite;
+}
+
+/* ------------------------------------------------------------------ */
+/* Mascot interactivity: excited tail on hover, a happy head-nod when  */
+/* you click to "pet" it.                                              */
+/* ------------------------------------------------------------------ */
+.scout-mascot {
+  cursor: pointer;
+}
+/* hover → the tail wags fast and happy (overrides the idle burst) */
+@media (hover: hover) {
+  .scout-mascot:hover .scout-wag {
+    animation: scout-wag-fast 0.34s ease-in-out infinite;
+  }
+}
+@keyframes scout-wag-fast {
+  0%,
+  100% {
+    transform: rotate(-15deg);
+  }
+  50% {
+    transform: rotate(15deg);
+  }
+}
+/* the head group nods DOWN into the pet, then springs back happy; the tail
+   goes wild for the duration */
+.scout-headgroup {
+  transform-box: fill-box;
+  transform-origin: 50% 98%;
+}
+.scout-mascot.is-petting .scout-headgroup {
+  animation: scout-pet-nod 0.95s cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+.scout-mascot.is-petting .scout-wag {
+  animation: scout-wag-fast 0.26s ease-in-out infinite;
+}
+@keyframes scout-pet-nod {
+  0% {
+    transform: translateY(0) scaleY(1) rotate(0deg);
+  }
+  35% {
+    transform: translateY(5px) scaleY(0.94) rotate(3deg); /* dips + squishes into the hand */
+  }
+  70% {
+    transform: translateY(4px) scaleY(0.96) rotate(2deg);
+  }
+  100% {
+    transform: translateY(0) scaleY(1) rotate(0deg);
+  }
+}
+/* petting also lights up a happy face: the mouth opens into a big tongue-out
+   smile and the left eye closes into a wink — swapped in with a quick crossfade. */
+.scout-mouth-happy,
+.scout-wink {
+  opacity: 0;
+}
+.scout-mouth-idle,
+.scout-mouth-happy,
+.scout-eye-l,
+.scout-wink {
+  transition: opacity 0.16s ease;
+}
+.scout-mascot.is-petting .scout-mouth-idle,
+.scout-mascot.is-petting .scout-eye-l {
+  opacity: 0;
+}
+.scout-mascot.is-petting .scout-mouth-happy,
+.scout-mascot.is-petting .scout-wink {
+  opacity: 1;
+}
+/* No opacity hack here on purpose: the eyes stay fully visible right up until
+   the binoculars are actually in place. The .scout-binoc group is later in
+   the SVG's paint order (see ScoutMascot.tsx) than .scout-blink, so once the
+   raised barrels are opaque over the eyes, they occlude them naturally —
+   hiding the eyes any earlier just left a gap with no eyes at all during the
+   raise's lead-in delay. */
+/* The head + binoculars scan the cards below with CHARACTER: swing to look
+   left, lean in and peer (a little focus dip), hold, back to center, swing
+   right, peer, hold, center, brief pause — then repeat. Starts at center so it
+   flows straight out of the raise. Delayed 0.8s so the raise lands first. */
+.scout-mascot.is-searching .scout-headgroup {
+  animation: scout-scan 5.4s ease-in-out 1.65s infinite;
+}
+/* Starts + ends at translateY(0) — matching the head's resting position during
+   the raise — so the head never DROPS when the scan kicks in. It only rotates
+   to look left/right, with a tiny lean-in on each peer. */
+@keyframes scout-scan {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  10% {
+    transform: translateY(0.5px) rotate(-7deg); /* swing left */
+  }
+  20% {
+    transform: translateY(2.5px) rotate(-7.5deg); /* lean in, peer left */
+  }
+  32% {
+    transform: translateY(0.5px) rotate(-7deg); /* hold */
+  }
+  44% {
+    transform: translateY(0) rotate(0deg); /* pass center */
+  }
+  56% {
+    transform: translateY(0.5px) rotate(7deg); /* swing right */
+  }
+  66% {
+    transform: translateY(2.5px) rotate(7.5deg); /* lean in, peer right */
+  }
+  78% {
+    transform: translateY(0.5px) rotate(7deg); /* hold */
+  }
+  90%,
+  100% {
+    transform: translateY(0) rotate(0deg); /* settle + brief pause */
+  }
+}
+/* The binoculars physically RAISE to the eyes: the paws lift them up from down
+   near the chest (low, small, tipped), OVERSHOOT a hair, then settle — a real
+   "bring them up to look" motion with a little bounce, not a crossfade. */
+.scout-binoc {
+  transform-box: fill-box;
+  transform-origin: 50% 96%;
+  /* raise into place first, THEN a gentle handheld wobble that runs on top of
+     the head's scan — the paws jiggle the binoculars side to side, so the rig
+     moves a little independently of the head, like it's really being held. */
+  /* the dog appears first (binoculars down + hidden), holds a beat, THEN slowly
+     raises them to the eyes — a delayed, unhurried lift, not an instant snap */
+  animation:
+    scout-binoc-raise 1.15s cubic-bezier(0.34, 1.4, 0.5, 1) 0.5s both,
+    scout-binoc-wobble 2.3s ease-in-out 1.65s infinite;
+}
+@keyframes scout-binoc-raise {
+  0% {
+    transform: translateY(40px) scale(0.7) rotate(-9deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+/* The front legs stay put through the raise's delay so the dog is never legless
+   during the pause, then tuck down + fade out exactly as the paws lift the
+   binoculars up (the raise begins at 0.5s ≈ 30% of this 1.65s window), so the
+   hand-off from "sitting" to "holding binoculars" reads as one motion. */
+.scout-mascot.is-searching .scout-front-legs {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: scout-legs-tuck 1.65s ease-in both;
+}
+@keyframes scout-legs-tuck {
+  0%,
+  28% {
+    transform: translateY(0) scaleY(1);
+    opacity: 1;
+  }
+  52%,
+  100% {
+    transform: translateY(9px) scaleY(0.82);
+    opacity: 0;
+  }
+}
+/* handheld jiggle — pivots near the paws (bottom), starts + ends at rest so it
+   hands off cleanly from the raise and loops seamlessly */
+@keyframes scout-binoc-wobble {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  28% {
+    transform: translateX(2.6px) rotate(2.4deg);
+  }
+  50% {
+    transform: translateX(0) rotate(0deg);
+  }
+  76% {
+    transform: translateX(-2.6px) rotate(-2.2deg);
+  }
+}
+.scout-mascot.is-searching .scout-wag {
+  animation: scout-wag-fast 0.5s ease-in-out infinite;
+}
+@keyframes scout-float {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(var(--float, 16px));
+  }
+}
+.scout-float {
+  animation: scout-float var(--float-dur, 18s) ease-in-out infinite;
+}
+/* clouds drifting on a slow wind — wide, unhurried, with a faint rise/fall;
+   oscillates around the anchor so the sky is never left empty */
+@keyframes scout-cloud-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(var(--csx, 1), var(--csy, 1));
+  }
+  50% {
+    transform: translate(var(--drift, 40px), var(--driftY, -6px)) scale(var(--csx, 1), var(--csy, 1));
+  }
+}
+.scout-cloud {
+  animation: scout-cloud-drift var(--drift-dur, 70s) ease-in-out infinite;
+  will-change: transform;
+}
+/* the trail dashes gently march toward the prompt */
+@keyframes scout-trail {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+.scout-trail {
+  stroke-dasharray: 2 14;
+  animation: scout-trail 1.6s linear infinite;
+}
+/* butterfly wings flutter */
+@keyframes scout-flutter {
+  0%,
+  100% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(0.5);
+  }
+}
+.scout-flutter {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: scout-flutter 0.3s ease-in-out infinite;
+}
+
+/* map attribution stays readable on the cream palette */
+.maplibregl-ctrl-attrib {
+  font-size: 10px;
+}
+
+/* thin scrollbars for the listing panel */
+.scout-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink-300) transparent;
+}
+.scout-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.scout-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-cream-200);
+  border-radius: 8px;
+}
+
+@keyframes scout-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.scout-pop {
+  animation: scout-pop 160ms ease-out;
+}
+
+/* ------------------------------------------------------------------ */
+/* Matcher animations                                                  */
+/* ------------------------------------------------------------------ */
+
+/* staggered card entrance (set animation-delay inline per index) */
+@keyframes scout-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.scout-rise {
+  animation: scout-rise 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+/* example chips fan in — a gentle rise + slight rotate + settle, staggered
+   per chip via inline animation-delay */
+@keyframes scout-chip-in {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) rotate(-4deg) scale(0.92);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+}
+.scout-chip-in {
+  animation: scout-chip-in 0.62s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+/* Adopt button — on hover a dog walks ACROSS the button, left to right, over
+   the (darkened) label: each paw print lands in sequence (alternating feet,
+   toes pointing right), the fresh tracks linger, and the oldest fade away.
+   Steps are positioned inline (left + animation-delay per print). */
+.scout-adopt-paws {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.scout-paw-step {
+  position: absolute;
+  top: 50%;
+  opacity: 0;
+  color: rgba(255, 255, 255, 0.92);
+  filter: drop-shadow(0 1px 1px rgba(12, 60, 33, 0.25));
+  /* translateX(-50%) centers each print on its `left` %, so the prints at 0% and
+     100% straddle the button's edges and get clipped by its rounded overflow —
+     the walk reads as continuing beyond the button. Foot height, toe angle, and
+     size are set per-print (--pty/--ptr/--pts) for a slightly askew real walk. */
+  transform: translate(-50%, var(--pty, -50%)) rotate(var(--ptr, 90deg)) scale(var(--pts, 1));
+}
+@media (hover: hover) {
+  .scout-adopt:hover .scout-paw-step {
+    animation: scout-paw-walk 2.8s linear infinite;
+  }
+  /* darken the label so the white tracks walking over it stay legible */
+  .scout-adopt:hover .scout-adopt-label {
+    color: rgba(9, 42, 24, 0.85);
+  }
+}
+/* The cascade fills the button (~0–2.2s with the per-print delays) then the
+   whole trail rests for ~0.5s before walking again — the visible walk lives in
+   the first ~34% of the 2.8s cycle; the rest is the deliberate pause. */
+@keyframes scout-paw-walk {
+  0% {
+    opacity: 0;
+  }
+  4% {
+    opacity: 0.95; /* the step lands */
+  }
+  22% {
+    opacity: 0.95; /* the track lingers behind the walker */
+  }
+  34% {
+    opacity: 0; /* …then fades as the walker moves on */
+  }
+  100% {
+    opacity: 0; /* the whole trail rests before the next pass */
+  }
+}
+
+/* resting polaroid tilt per card (rotateZ ONLY — this element carries the
+   view-transition-name, and a 3D perspective/rotateX here corrupts the VT
+   snapshot and makes the row→grid morph skip; the in-space 3D feel comes from
+   the flight pose and the per-card hover tilt inside DogCard). Straightens
+   and lifts on hover. */
+.scout-tilt {
+  transform: rotate(var(--tilt, 0deg));
+  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.3, 1);
+  will-change: transform;
+}
+.scout-tilt:hover {
+  transform: rotate(0deg) translateY(-6px);
+  z-index: 5;
+}
+
+/* ------------------------------------------------------------------ */
+/* The sift: while matching runs, trading cards continuously fly in,    */
+/* drift past the prompt box (some behind its frosted glass, some in    */
+/* front), and fly out — always face-on, never showing a back. Each     */
+/* card follows its own randomized path via CSS vars; when one exits,   */
+/* React recycles it with the next dog from the current candidate pool. */
+/* ------------------------------------------------------------------ */
+/* NOTE: no perspective/z-index on the stage itself — that would trap every
+   floater in one stacking context painted beneath the page sections. With
+   the stage transparent to stacking, each floater's own z-index joins the
+   page: back cards (z 0) glide behind the text and the laid rows, front
+   cards (z 30) fly right OVER them. Perspective lives per-floater instead. */
+.scout-sift-stage {
+  pointer-events: none;
+}
+/* THREE depth layers around the reading, so a two-line query is woven through:
+   the query's TOP line sits at z-24 and its BOTTOM line at z-16. The BACK layer
+   (z-6) glides behind both lines; the MID layer (z-20) threads BETWEEN them —
+   under the first line, over the second; the FRONT layer (z-26) sweeps over
+   both. That interleave is the depth. Status pill + shortlist stay above (z-40+). */
+.scout-sift-back {
+  z-index: 6;
+}
+.scout-sift-mid {
+  z-index: 20;
+}
+.scout-sift-front {
+  z-index: 26;
+}
+/* true ORBIT: six waypoints tracing an ellipse AROUND the prompt (center of
+   gravity). Each stop carries its own parallax depth (--zN), scale (--scN)
+   and lean (--rotN). Stacking (z-index) is FIXED per card via --zi (set on the
+   element, not animated) so cards never pop over each other mid-arc. Opacity
+   is eased right at the ends so entry/exit don't hard-cut (anti-flash). */
+@keyframes scout-orbit {
+  0% {
+    opacity: 0;
+    transform: translate3d(var(--x0), var(--y0), var(--z0, -140px)) rotate(var(--rot0, 0deg))
+      scale(var(--sc0, 0.6));
+  }
+  14% {
+    opacity: 1;
+    transform: translate3d(var(--x1), var(--y1), var(--z1, 0px)) rotate(var(--rot1, 0deg))
+      scale(var(--sc1, 0.9));
+  }
+  36% {
+    transform: translate3d(var(--x2), var(--y2), var(--z2, 0px)) rotate(var(--rot2, 0deg))
+      scale(var(--sc2, 1));
+  }
+  60% {
+    transform: translate3d(var(--x3), var(--y3), var(--z3, 0px)) rotate(var(--rot3, 0deg))
+      scale(var(--sc3, 1.1));
+  }
+  86% {
+    opacity: 1;
+    transform: translate3d(var(--x4), var(--y4), var(--z4, 0px)) rotate(var(--rot4, 0deg))
+      scale(var(--sc4, 1));
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--x5), var(--y5), var(--z5, -140px)) rotate(var(--rot5, 0deg))
+      scale(var(--sc5, 0.6));
+  }
+}
+.scout-sift {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: var(--zi, 2);
+  animation: scout-orbit var(--dur, 9s) cubic-bezier(0.42, 0.03, 0.4, 0.97) forwards;
+  will-change: transform, opacity;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  perspective: 560px; /* closer perspective → stronger foreshortening so the
+                         angled cards read as real 3D, not flat billboards */
+}
+
+/* a candidate plucked from the swirl and dropped into the shortlist row: it
+   tumbles in from a seeded point up around the orbit (--lay-x / --lay-y / a
+   tumble rotation), falls into its slot, overshoots a hair, then settles.
+   Cards cascade one-by-one via a per-card animation-delay set in the JSX. */
+@keyframes scout-lay {
+  0% {
+    opacity: 0;
+    transform: translate3d(var(--lay-x, 0), var(--lay-y, -46vh), 60px)
+      rotate(var(--lay-from, 12deg)) scale(1.06);
+  }
+  18% {
+    opacity: 1;
+  }
+  60% {
+    /* arc through a point up-and-toward-center so it swoops, not drops */
+    transform: translate3d(calc(var(--lay-x, 0) * 0.22), -6vh, 24px)
+      rotate(calc(var(--lay-rot, 0deg) + 2deg)) scale(1.02);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(var(--lay-rot, 0deg)) scale(1);
+  }
+}
+.scout-lay {
+  animation: scout-lay 1.1s cubic-bezier(0.22, 0.7, 0.24, 1) both;
+  will-change: transform, opacity;
+}
+/* gentle 3D sway with a paper flutter — small angles only, so the face
+   always reads; the slight rotateZ gives it the wobble of a real card
+   carried on air rather than a rigid billboard */
+@keyframes scout-sift-sway {
+  from {
+    transform: rotateY(-27deg) rotateX(9deg) rotateZ(-4deg);
+  }
+  to {
+    transform: rotateY(26deg) rotateX(-8deg) rotateZ(4deg);
+  }
+}
+.scout-sift-sway {
+  animation: scout-sift-sway var(--sway, 3.2s) ease-in-out infinite alternate;
+  transform-style: preserve-3d;
+}
+/* the card's own resting 3D pose while in flight (seeded per dog) — cards
+   are never head-on; some angle toward the camera, some away */
+.scout-pose-flight {
+  transform: rotateX(var(--poseX, 0deg)) rotateY(var(--poseY, 0deg)) rotate(var(--tilt, 0deg));
+  transform-style: preserve-3d;
+}
+
+/* ------------------------------------------------------------------ */
+/* Skeuomorphic trading-card treatment: warm paper stock, printed       */
+/* hairline border, faint grain over the whole face (photo included,    */
+/* like ink on textured card stock), and a contact + ambient shadow     */
+/* pair so cards read as physically resting on the page.                */
+/* ------------------------------------------------------------------ */
+.scout-card {
+  position: relative;
+  /* the shadow stack: card-stock edge (two hairline offsets, like the side of
+     real card thickness), contact shadow, ambient shadow, lift shadow */
+  box-shadow:
+    0 1.5px 0 -0.5px #e8ddc9,
+    0 2.5px 0 -0.5px rgba(41, 32, 26, 0.18),
+    0 1px 1px rgba(41, 32, 26, 0.12),
+    0 4px 6px -2px rgba(41, 32, 26, 0.1),
+    0 12px 24px -10px rgba(41, 32, 26, 0.28),
+    0 28px 56px -20px rgba(41, 32, 26, 0.24);
+}
+.scout-card:hover {
+  box-shadow:
+    0 1.5px 0 -0.5px #e8ddc9,
+    0 2.5px 0 -0.5px rgba(41, 32, 26, 0.18),
+    0 2px 3px rgba(41, 32, 26, 0.14),
+    0 6px 10px -3px rgba(41, 32, 26, 0.12),
+    0 20px 36px -12px rgba(41, 32, 26, 0.34),
+    0 44px 80px -24px rgba(41, 32, 26, 0.3);
+}
+/* paper grain + printed hairline + edge light (top & left catch the light) */
+.scout-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1px rgba(41, 32, 26, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 1px 0 0 rgba(255, 255, 255, 0.4);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.08'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+}
+/* the photo reads as printed onto the cardstock — a single clean hairline
+   keyline frames it (no inset shadow "well", which looked sunken/glassy). */
+.scout-inset::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(41, 32, 26, 0.08);
+}
+
+/* ------------------------------------------------------------------ */
+/* Used-card wear — deterministic per dog (see motion.ts wearOf).      */
+/* Subtle: a loved card, not a damaged one.                            */
+/* ------------------------------------------------------------------ */
+.scout-bend {
+  position: absolute;
+  z-index: 5;
+  width: 15px;
+  height: 15px;
+  pointer-events: none;
+}
+.scout-bend-tl {
+  left: 0;
+  top: 0;
+  border-top-left-radius: 16px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.65) 0%, rgba(41, 32, 26, 0.1) 42%, transparent 58%);
+}
+.scout-bend-tr {
+  right: 0;
+  top: 0;
+  border-top-right-radius: 16px;
+  background: linear-gradient(225deg, rgba(255, 255, 255, 0.65) 0%, rgba(41, 32, 26, 0.1) 42%, transparent 58%);
+}
+.scout-bend-bl {
+  left: 0;
+  bottom: 0;
+  border-bottom-left-radius: 16px;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.65) 0%, rgba(41, 32, 26, 0.1) 42%, transparent 58%);
+}
+.scout-bend-br {
+  right: 0;
+  bottom: 0;
+  border-bottom-right-radius: 16px;
+  background: linear-gradient(315deg, rgba(255, 255, 255, 0.65) 0%, rgba(41, 32, 26, 0.1) 42%, transparent 58%);
+}
+/* faint white stress crease from a light bend */
+.scout-crease {
+  position: absolute;
+  z-index: 5;
+  top: -6%;
+  height: 112%;
+  width: 3px;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(255, 255, 255, 0.5) 30%,
+    rgba(255, 255, 255, 0.22) 55%,
+    transparent
+  );
+  filter: blur(0.6px);
+  opacity: 0.55;
+}
+/* small sleeve scuffs */
+.scout-scuff {
+  position: absolute;
+  z-index: 5;
+  width: 34px;
+  height: 18px;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 35% at 30% 40%, rgba(255, 255, 255, 0.35), transparent 70%),
+    radial-gradient(ellipse 40% 25% at 70% 65%, rgba(255, 255, 255, 0.25), transparent 70%);
+  transform: rotate(-18deg);
+}
+/* glossy sheen sweeping the card face, like a foil print */
+.scout-gloss {
+  position: relative;
+}
+.scout-gloss::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+  /* a whisper of sheen only — the old 0.3 top-left highlight read as a
+     translucent corner on every card. */
+  background: linear-gradient(
+    118deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.03) 20%,
+    rgba(255, 255, 255, 0) 34%
+  );
+}
+
+/* a trail of paw prints stepping in, one after another */
+@keyframes scout-paw-step {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.85);
+  }
+  35%,
+  55% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+.scout-paw {
+  display: inline-block;
+  animation: scout-paw-step 1.6s ease-in-out infinite;
+}
+
+/* pop-in for score badges / chips */
+@keyframes scout-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  65% {
+    transform: scale(1.09);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.scout-pop-in {
+  animation: scout-pop-in 0.4s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+/* pulsing ring around the live mic */
+@keyframes scout-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4);
+  }
+  75% {
+    box-shadow: 0 0 0 16px rgba(244, 63, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0);
+  }
+}
+.scout-ring {
+  animation: scout-ring 1.5s ease-out infinite;
+}
+
+/* equalizer bars inside the listening mic */
+@keyframes scout-eq {
+  0%,
+  100% {
+    transform: scaleY(0.45);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+.scout-eq {
+  transform-origin: bottom;
+  animation: scout-eq 0.9s ease-in-out infinite;
+}
+
+/* thinking dots */
+@keyframes scout-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+.scout-dot {
+  animation: scout-dot 1.2s ease-in-out infinite;
+}
+
+/* slow drifting ambient blobs behind the hero */
+@keyframes scout-drift {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(4%, -6%) scale(1.08);
+  }
+}
+.scout-blob {
+  animation: scout-drift 14s ease-in-out infinite alternate;
+}
+
+/* indeterminate progress bar for the deep-read stage */
+@keyframes scout-progress {
+  0% {
+    left: -35%;
+  }
+  100% {
+    left: 105%;
+  }
+}
+.scout-progress {
+  position: relative;
+  overflow: hidden;
+}
+.scout-progress::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -35%;
+  width: 35%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.9), transparent);
+  animation: scout-progress 1.4s ease-in-out infinite;
+}
+
+/* smooth reorder when ranked scores land (View Transitions API). Slow + gentle
+   so a card settling into the fan reads as a hand placing it, not a snap.
+   (Effective values are set on the later ::view-transition-group rule too.) */
+::view-transition-group(*) {
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0.15, 1);
+}
+
+/* ------------------------------------------------------------------ */
+/* The flip-and-grow: clicking a card flips it over AND scales it up   */
+/* into a full-size reading of the dog — not constrained to the cell.  */
+/* ------------------------------------------------------------------ */
+/* The little bell that lifts off the "Watch this search" button and arcs into
+   the header bell (flyBellToHeader). Lives on <body>, above everything. */
+.scout-fly-bell {
+  position: fixed;
+  z-index: 2147483647; /* above EVERYTHING — header, modals, toasts */
+  pointer-events: none;
+  color: var(--color-terra-500, #c96a3b);
+  filter: drop-shadow(0 2px 6px rgba(41, 32, 26, 0.3));
+  will-change: transform, opacity;
+}
+
+/* The header wordmark uses Baloo 2 (a rounded display face with a deep descent),
+   so its caps sit high inside the line box even when the box is centered. Trim
+   the box to the cap/alphabetic edges where supported so flex-centering is exact;
+   a small translate nudge is the fallback for browsers without text-box. */
+.scout-wordmark {
+  transform: translateY(3px);
+  text-box: trim-both cap alphabetic;
+}
+@supports (text-box: trim-both cap alphabetic) {
+  /* cap-trimmed centers it exactly; a ~1.5px nudge sits it slightly lower, which
+     reads better against the round-bottomed Baloo caps. */
+  .scout-wordmark {
+    transform: translateY(1.5px);
+  }
+}
+
+.scout-flip-scene {
+  perspective: 1400px;
+}
+.scout-card-tilt {
+  transform: rotateX(var(--px, 0deg)) rotateY(var(--py, 0deg));
+  transition: transform 0.18s ease-out;
+  transform-style: preserve-3d;
+}
+/* holographic sheen that follows the pointer across the card face —
+   hover-capable devices only (on touch, :hover sticks after a tap) */
+@media (hover: hover) {
+  .scout-holo {
+    background: radial-gradient(
+      circle at var(--gx, 30%) var(--gy, 20%),
+      rgba(255, 255, 255, 0.32),
+      rgba(255, 255, 255, 0) 52%
+    );
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  .scout-card-tilt:hover .scout-holo {
+    opacity: 1;
+  }
+}
+
+/* grid cards get a small, VARIED per-card tilt (--tilt is seeded to swing
+   both directions, so they scatter naturally instead of all cocking the same
+   way) and a physical lift that squares them up on hover. rotateZ only —
+   safe for the view-transition morph. */
+/* Rest tilt + hover lift on ONE element (the only lift layer — a second one
+   inside made hovering between overlapping cards jump). Hover KEEPS the tilt
+   and only adds translate/scale, so the card's footprint barely moves and the
+   pointer never falls out of its own hover region mid-transition. */
+.scout-liftable {
+  transform: rotate(var(--tilt, 0deg));
+  transition:
+    transform 0.28s cubic-bezier(0.2, 0.7, 0.3, 1),
+    filter 0.28s ease;
+  will-change: transform;
+}
+/* Hover lift is gated to hover-capable devices — on touch, :hover latches
+   after a tap and would leave the card stuck lifted/scaled once the profile
+   modal closes (same reason .scout-holo is gated below). */
+@media (hover: hover) {
+  /* lift + tip to a clearly OPPOSITE angle from the resting tilt (--tilt-hover
+     is the other sign, ~5°, set per-card in JS) so hovering visibly turns the
+     card the other way — a hand picking it up and tipping it, not a flat float. */
+  .scout-liftable:hover {
+    transform: rotate(var(--tilt-hover, 0deg)) translateY(-10px) scale(1.03);
+    z-index: 6;
+    filter: drop-shadow(0 22px 26px rgba(41, 32, 26, 0.26));
+  }
+  .scout-fan-slot:hover {
+    z-index: 30 !important; /* the slot's stacking order is set inline */
+  }
+  .scout-fan-slot:hover .scout-fan {
+    transform: translate(var(--fan-x, 0px), calc(var(--fan-y, 0px) - 10px)) rotateZ(0deg) rotateX(0deg) scale(1.05);
+  }
+}
+
+/* the forming shortlist as ONE held hand of cards: every card shares the same
+   gentle tip-back, and its fan angle + arc dip come from its slot (set inline
+   as --fan-rot/--fan-y, symmetric around the center) — deliberate, not a
+   random pile. The transition lets cards glide when the ranking re-sorts. */
+.scout-fan {
+  transform: translate(var(--fan-x, 0px), var(--fan-y, 0px)) rotateZ(var(--fan-rot, 0deg)) rotateX(7deg);
+  transform-origin: 50% 60%;
+  transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.3, 1);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* the query as the scene's centerpiece: a thick white halo (a real paint-like
+   border, not a hairline) + soft drop shadow, so it stays legible and feels
+   lifted above the orbiting cards that pass in front of and behind it. The
+   halo is a wide paint-order stroke plus a stack of white offsets for browsers
+   without stroke support. */
+/* a crisp white outline ONLY — no drop shadow, no blur — so the query stays
+   legible over the orbiting cards without any soft glow behind it. */
+.scout-query-text {
+  color: var(--color-ink-900);
+  -webkit-text-stroke: 3.5px #fff;
+  paint-order: stroke fill;
+  /* the sift cards are pointer-events:none, so hovering "a card" actually hits
+     this text behind it — keep it a normal arrow, never a text I-beam */
+  cursor: default;
+  user-select: none;
+}
+/* the status line shares the outline, but a THIN one — at 17px a 4px stroke
+   swallows the letterforms' counters; 1.5px lifts without muddying. */
+.scout-query-sub {
+  color: var(--color-ink-700);
+  -webkit-text-stroke: 1.5px #fff;
+  paint-order: stroke fill;
+}
+/* blinking type cursor for the smooth typewriter status */
+@keyframes scout-caret {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+.scout-caret {
+  display: inline-block;
+  width: 2px;
+  margin-left: 1px;
+  align-self: stretch;
+  background: currentColor;
+  animation: scout-caret 1s step-end infinite;
+}
+
+/* Open the full profile as a real card TURN: the clicked card grows from its
+   spot in the grid and rotates on its Y axis to reveal its back — the dossier.
+   The geometry (start pose over the card → final centered pose) is measured and
+   driven inline in CardExpanded; these classes just set up the 3D scene. */
+.scout-flip-overlay {
+  perspective: 2000px;
+}
+/* plain info card (opened from a map/list listing) — no flip, just a soft
+   fade + tiny rise in, and a fade out on close */
+@keyframes scout-info-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes scout-info-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(0.99);
+  }
+}
+.scout-info-in {
+  animation: scout-info-in 0.24s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.scout-info-out {
+  animation: scout-info-out 0.19s ease-in both;
+}
+.scout-flip-card {
+  transform-style: preserve-3d;
+  transform-origin: center center;
+  will-change: transform;
+}
+.scout-flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+/* the back is pre-turned a half-rotation so it reads correctly once the whole
+   card has turned 180° to face the viewer. */
+.scout-flip-back {
+  transform: rotateY(180deg);
+}
+/* the dossier's drop shadow eases IN over the open instead of popping to full
+   the instant the card passes edge-on. The hairline ring stays constant; only
+   the ambient/contact shadow ramps. */
+.scout-flip-plate {
+  animation: scout-plate-shadow 0.7s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+@keyframes scout-plate-shadow {
+  from {
+    box-shadow:
+      0 0 0 1px rgba(22, 38, 43, 0.1),
+      0 0 0 0 rgba(22, 38, 43, 0);
+  }
+  to {
+    box-shadow:
+      0 0 0 1px rgba(22, 38, 43, 0.1),
+      0 26px 64px -20px rgba(22, 38, 43, 0.42);
+  }
+}
+@keyframes scout-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.scout-fade-in {
+  animation: scout-fade-in 0.3s ease-out both;
+}
+
+/* Targeted view-transition morphs: the page itself swaps instantly — a
+   full-screen cross-fade strobed on the per-card plucks (one VT per pluck) —
+   while every NAMED card travels on one shared, calm curve. This carries the
+   pluck (floater → fan slot), the hand-off (fan → grid), and the query's
+   hero → reading morph. */
+::view-transition-old(root) {
+  animation: none;
+  opacity: 0; /* not just animation:none — a static old snapshot would blend
+                 (plus-lighter) with the new root and bleach the whole page */
+}
+::view-transition-new(root) {
+  animation: none;
+  opacity: 1;
+}
+::view-transition-group(*) {
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0.15, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scout-rise,
+  .scout-pop-in,
+  .scout-paw-step,
+  .scout-chip-in,
+  .scout-ring,
+  .scout-eq,
+  .scout-dot,
+  .scout-blob,
+  .scout-progress::after,
+  .scout-sift,
+  .scout-sift-sway,
+  .scout-lay,
+  .scout-wag,
+  .scout-wag-fast,
+  .scout-headgroup,
+  .scout-binoc,
+  .scout-front-legs,
+  .scout-blink,
+  .scout-breathe,
+  .scout-ear,
+  .scout-float,
+  .scout-cloud,
+  .scout-trail,
+  .scout-flutter {
+    animation: none !important;
+  }
+  .scout-card-tilt {
+    transform: none !important;
+  }
+  /* no tuck animation to hide them, so drop the front legs outright while
+     searching — the binoculars simply sit up at the eyes. */
+  .scout-mascot.is-searching .scout-front-legs {
+    display: none;
+  }
+  .scout-sift {
+    display: none; /* decorative only — the status line still narrates */
+  }
+  /* keep the resting tilt/fan but suppress the positional lift on hover */
+  .scout-liftable:hover {
+    transform: rotate(var(--tilt, 0deg)) !important;
+    filter: none !important;
+  }
+  .scout-fan {
+    transition: none !important;
+  }
+  .scout-fan-slot:hover .scout-fan {
+    transform: translate(var(--fan-x, 0px), var(--fan-y, 0px)) rotateZ(var(--fan-rot, 0deg)) rotateX(7deg) !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

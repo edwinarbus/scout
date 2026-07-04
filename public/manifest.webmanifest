@@ -1,0 +1,16 @@
+{
+  "name": "Scout — California dog adoption scout",
+  "short_name": "Scout",
+  "description": "Describe the dog. Scout checks real California shelters and pings you when your match shows up.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#e9f6ff",
+  "theme_color": "#1c8047",
+  "icons": [
+    { "src": "/icon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any" },
+    { "src": "/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
+    { "src": "/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any" },
+    { "src": "/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
+  ]
+}

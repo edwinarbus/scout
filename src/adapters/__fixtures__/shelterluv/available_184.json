@@ -1,0 +1,810 @@
+{
+ "animals": [
+  {
+   "nid": 206030899,
+   "name": "Atlantis",
+   "uniqueId": "RCKT-A-6052",
+   "sex": "Male",
+   "location": "Foster Home",
+   "birthday": "1684625393",
+   "age_group": {
+    "id": 29816,
+    "shelter_id": 184,
+    "name": "Young Adult Dog",
+    "legacy_id": 23752,
+    "age_from": 6,
+    "from_unit": "months",
+    "age_to": 4,
+    "to_unit": "years",
+    "type": "Dog",
+    "default_group": 0,
+    "created_at": "2023-09-19T02:49:08.000000Z",
+    "updated_at": "2024-11-20T06:24:32.000000Z",
+    "deleted_at": null,
+    "estimated_days": 180,
+    "age_from_in_days": 180,
+    "age_to_in_days": 1460,
+    "name_with_duration": "Young Adult Dog (6 months-4 years)",
+    "duration": "(6 months-4 years)"
+   },
+   "species": "Dog",
+   "breed": "Mixed Breed (Medium)",
+   "secondary_breed": "",
+   "primary_color": "Brindle",
+   "secondary_color": "Brown",
+   "weight_group": "Medium (20-59)",
+   "attributes": [],
+   "photos": {
+    "0": {
+     "id": 15462990,
+     "name": "20240903112518.png",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/77b488df348fc1a6d11559ce7f89e1d2/20240903112518.png",
+     "isCover": false,
+     "order_column": 1
+    },
+    "2": {
+     "id": 41266382,
+     "name": "20240903112452.png",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/982e36cfb2fbec641b2ff56837b05b35/cc3a8e16f9971e9947edbb64213226fb.png",
+     "isCover": true,
+     "order_column": 1
+    },
+    "3": {
+     "id": 41210561,
+     "name": "3412297087085240901.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/be6337ad52b29cc40bcd23b060952955/3407e5e94d392c32f4de5c4803f2b962.jpeg",
+     "isCover": false,
+     "order_column": 2
+    },
+    "4": {
+     "id": 41266348,
+     "name": "IMG_3594.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/c3dd2a078812c1efabbe7d310102b656/e38c20229193262e2a3058b3f6fae598.jpeg",
+     "isCover": false,
+     "order_column": 3
+    },
+    "5": {
+     "id": 41266366,
+     "name": "IMG_3599.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/9a3bc5eecc522e13efb1694274d3337d/45b4d2392e76946fa5616dfafcd056ec.jpeg",
+     "isCover": false,
+     "order_column": 4
+    },
+    "6": {
+     "id": 41266367,
+     "name": "IMG_3604.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/a46c4ac1142e18ec776df79effe5bb5f/cf2385da5f1bbaf5da1c34c7e0fca0ef.jpeg",
+     "isCover": false,
+     "order_column": 5
+    },
+    "7": {
+     "id": 41266371,
+     "name": "IMG_3605.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/0b245846a8b30dc2c537965c4c35772a/5a0672aac0803a525500e340ee1afe60.jpeg",
+     "isCover": false,
+     "order_column": 6
+    }
+   },
+   "intake_date": "1776885509",
+   "campus": "Main Campus",
+   "public_url": "https://new.shelterluv.com/embed/animal/206030899",
+   "adoptable": 1
+  },
+  {
+   "nid": 206031050,
+   "name": "Lee Lou",
+   "uniqueId": "RCKT-A-4819",
+   "sex": "Female",
+   "location": "Foster Home",
+   "birthday": "1514850672",
+   "age_group": {
+    "id": 29818,
+    "shelter_id": 184,
+    "name": "Senior Dog",
+    "legacy_id": 26097,
+    "age_from": 7,
+    "from_unit": "years",
+    "age_to": null,
+    "to_unit": "",
+    "type": "Dog",
+    "default_group": 0,
+    "created_at": "2023-09-19T02:49:08.000000Z",
+    "updated_at": "2024-11-20T06:24:32.000000Z",
+    "deleted_at": null,
+    "estimated_days": 2555,
+    "age_from_in_days": 2555,
+    "age_to_in_days": 0,
+    "name_with_duration": "Senior Dog (7+ years)",
+    "duration": "(7+ years)"
+   },
+   "species": "Dog",
+   "breed": "Bloodhound",
+   "secondary_breed": "Mix",
+   "primary_color": "Red/Mahogany",
+   "secondary_color": null,
+   "weight_group": "Large (60-99)",
+   "attributes": [],
+   "photos": {
+    "4": {
+     "id": 15463322,
+     "name": "20220725215303.png",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/c73787f1b95fe88cbfccac07ce2fa54b/20220725215303.png",
+     "isCover": false,
+     "order_column": 1
+    },
+    "5": {
+     "id": 24163026,
+     "name": "IMG_0473.JPG",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/86b0da746e3bb8202e2620de812f05d1/305a5ca14869cda17f9052d5f1f9c1e6.JPG",
+     "isCover": false,
+     "order_column": 2
+    },
+    "6": {
+     "id": 24645440,
+     "name": "IMG_7793.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/9f705de5fc5af69d62669e154333312e/bcb8a3f9605e5e25ff1e3ac193238ec1.jpeg",
+     "isCover": false,
+     "order_column": 3
+    },
+    "7": {
+     "id": 24645445,
+     "name": "IMG_7796.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/3f9c622423ef6e1ecf500db5f6c940d6/53bb8403f33fa95b98bbe7ae7c509d46.jpeg",
+     "isCover": false,
+     "order_column": 4
+    },
+    "9": {
+     "id": 26016252,
+     "name": "IMG_0472.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/953b4040bba30f8802b9daa761714006/bb9a104b6eb820b8194b5726b944e325.jpeg",
+     "isCover": false,
+     "order_column": 6
+    },
+    "11": {
+     "id": 26016264,
+     "name": "IMG_0477.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/8cca88758e2222e325eb13277e6485bd/1fef9e42091b2c73eda9957e1b0343d8.jpeg",
+     "isCover": false,
+     "order_column": 8
+    },
+    "13": {
+     "id": 26016277,
+     "name": "IMG_0471.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/bc8f1860a96b8379554848597c284d9d/ef433671d7a1f1fcde907c230e8ae519.jpeg",
+     "isCover": false,
+     "order_column": 10
+    },
+    "14": {
+     "id": 26065845,
+     "name": "IMG_0532.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/c509225856b22466c7889013f90960cb/58e69e430f7de7880e188205e676e5fc.jpeg",
+     "isCover": false,
+     "order_column": 11
+    },
+    "17": {
+     "id": 31588008,
+     "name": "IMG_8478.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/b9bfd1accaf0f9ae63a811645ac79dbf/fc6e53d9c1da68a5ad32890a36a6380d.jpeg",
+     "isCover": false,
+     "order_column": 17
+    },
+    "18": {
+     "id": 31588011,
+     "name": "IMG_8479.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/eaa70454da55bfc5ad5a98c3634630db/f9ac327a2988bb972186e54065552e4d.jpeg",
+     "isCover": false,
+     "order_column": 18
+    },
+    "21": {
+     "id": 32062030,
+     "name": "IMG_9225.png",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/10d83e623adb4fe2dca08a7921d39b93/55123f24db8acafe80ad5173e0c2aeab.png",
+     "isCover": false,
+     "order_column": 21
+    },
+    "22": {
+     "id": 32062036,
+     "name": "IMG_9224.png",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/c1158ae21ee1b802ac736a381787c7ff/d00466116af2ed1a945f5adf99839449.png",
+     "isCover": false,
+     "order_column": 22
+    },
+    "23": {
+     "id": 32249646,
+     "name": "IMG_9437.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/375d287a66b8c244417d71c53433150f/81745522135013f45bc7dcbdab8e4b45.jpeg",
+     "isCover": false,
+     "order_column": 23
+    },
+    "24": {
+     "id": 32249650,
+     "name": "IMG_9436.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/9d5101a732d2a2921ebbc835269ab224/719245adb8cae3249dd304c689032c60.jpeg",
+     "isCover": false,
+     "order_column": 24
+    },
+    "25": {
+     "id": 32249659,
+     "name": "IMG_9441.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/5c5e131e79723a520f7345ba6e13faa3/a14661602f0ec8f838ee0dbf92ad1d09.jpeg",
+     "isCover": true,
+     "order_column": 25
+    }
+   },
+   "intake_date": "1732578672",
+   "campus": "Main Campus",
+   "public_url": "https://new.shelterluv.com/embed/animal/206031050",
+   "adoptable": 1
+  },
+  {
+   "nid": 206032594,
+   "name": "Bean",
+   "uniqueId": "RCKT-A-1008",
+   "sex": "Male",
+   "location": "Foster Home",
+   "birthday": "1553700359",
+   "age_group": {
+    "id": 29818,
+    "shelter_id": 184,
+    "name": "Senior Dog",
+    "legacy_id": 26097,
+    "age_from": 7,
+    "from_unit": "years",
+    "age_to": null,
+    "to_unit": "",
+    "type": "Dog",
+    "default_group": 0,
+    "created_at": "2023-09-19T02:49:08.000000Z",
+    "updated_at": "2024-11-20T06:24:32.000000Z",
+    "deleted_at": null,
+    "estimated_days": 2555,
+    "age_from_in_days": 2555,
+    "age_to_in_days": 0,
+    "name_with_duration": "Senior Dog (7+ years)",
+    "duration": "(7+ years)"
+   },
+   "species": "Dog",
+   "breed": "Terrier, Rat",
+   "secondary_breed": "",
+   "primary_color": "Black",
+   "secondary_color": "White",
+   "weight_group": "Small (1-19)",
+   "attributes": [],
+   "photos": {
+    "4": {
+     "id": 38335338,
+     "name": "Screenshot 2026-03-04 at 2.32.26 PM.png",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/fb6439583b04d02549d047c4c329fec3/ebb2ab055acfe88001f1f751e3df915b.png",
+     "isCover": false,
+     "order_column": 5
+    },
+    "5": {
+     "id": 38335349,
+     "name": "Screenshot 2026-03-04 at 2.31.14 PM.png",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/54370709d12822e4e02b43010f564726/c89281a1c77bb08954d21ce28037533a.png",
+     "isCover": false,
+     "order_column": 6
+    },
+    "6": {
+     "id": 38335352,
+     "name": "Screenshot 2026-03-04 at 2.31.04 PM.png",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/ce21c75ab0cb28cbcaf50ca9408d9239/8a7c5262f7ced4ab9b8e1a23033edc86.png",
+     "isCover": false,
+     "order_column": 7
+    },
+    "7": {
+     "id": 38335360,
+     "name": "Screenshot 2026-03-04 at 2.30.54 PM.png",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/b7b86cf239c9926f01402070d4ea5511/bb2e70f5ea7735522f8d3eda2e938b41.png",
+     "isCover": false,
+     "order_column": 8
+    },
+    "11": {
+     "id": 38335405,
+     "name": "Screenshot 2026-03-04 at 1.49.32 PM.png",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/c316d4a564a6595e5dd894a103d01e9b/52b822c7a796033d393fa89c7fe1bcec.png",
+     "isCover": false,
+     "order_column": 12
+    },
+    "13": {
+     "id": 38608507,
+     "name": "d22ebd7a2290b9b9defe6377e0423dcd.png",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/9bcd1b8740d66b2b47521f588cedabac/ee13b2c2abc00c6b5cf60405dcadf1f2.png",
+     "isCover": false,
+     "order_column": 14
+    },
+    "14": {
+     "id": 38335421,
+     "name": "Screenshot 2026-03-04 at 1.48.51 PM.png",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/c9b26f9e10f08494d1415576d05de9c2/6583c1117dc5ba7e616f00fa259c5a94.png",
+     "isCover": false,
+     "order_column": 15
+    },
+    "17": {
+     "id": 41747655,
+     "name": "IMG_5695.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/e64ae1a0eaa45b1fb39eb857c458c37a/455a993a81ba5c323e45ec3a9e9bd2ea.jpeg",
+     "isCover": true,
+     "order_column": 19
+    },
+    "18": {
+     "id": 41747659,
+     "name": "IMG_5696.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/e016033e5419a011eb9e26e15f0bc2d2/69c10d798fadca93d82d131a124b48e9.jpeg",
+     "isCover": false,
+     "order_column": 20
+    },
+    "20": {
+     "id": 41749659,
+     "name": "IMG_5694.png",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/f7ba275e3a77deda3817dd43f3226f25/71964eed3beacd793f9323aca2897981.png",
+     "isCover": false,
+     "order_column": 22
+    },
+    "21": {
+     "id": 43418620,
+     "name": "IMG_9676.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/20018426a25e44c9419a7ed7a1f51579/683c4ef7661690545cdc56c46c574a5a.jpeg",
+     "isCover": false,
+     "order_column": 23
+    }
+   },
+   "intake_date": "1772610527",
+   "campus": "Main Campus",
+   "public_url": "https://new.shelterluv.com/embed/animal/206032594",
+   "adoptable": 1
+  },
+  {
+   "nid": 206033980,
+   "name": "Penny",
+   "uniqueId": "RCKT-A-6670",
+   "sex": "Female",
+   "location": "Foster Home",
+   "birthday": "1713481123",
+   "age_group": {
+    "id": 29816,
+    "shelter_id": 184,
+    "name": "Young Adult Dog",
+    "legacy_id": 23752,
+    "age_from": 6,
+    "from_unit": "months",
+    "age_to": 4,
+    "to_unit": "years",
+    "type": "Dog",
+    "default_group": 0,
+    "created_at": "2023-09-19T02:49:08.000000Z",
+    "updated_at": "2024-11-20T06:24:32.000000Z",
+    "deleted_at": null,
+    "estimated_days": 180,
+    "age_from_in_days": 180,
+    "age_to_in_days": 1460,
+    "name_with_duration": "Young Adult Dog (6 months-4 years)",
+    "duration": "(6 months-4 years)"
+   },
+   "species": "Dog",
+   "breed": "Collie, Border",
+   "secondary_breed": "Shepherd, German",
+   "primary_color": "Black",
+   "secondary_color": "White",
+   "weight_group": "Medium (25-59)",
+   "attributes": [],
+   "photos": {
+    "2": {
+     "id": 40785175,
+     "name": "IMG_0045.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/3280a11004418a414325c9a435f50603/1a8d83f5ea88a18cd87605da45899e05.jpeg",
+     "isCover": false,
+     "order_column": 3
+    },
+    "4": {
+     "id": 40785179,
+     "name": "IMG_0040.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/cb8e0d806a071b0a844ff3f85edaa1bf/a41d975ebd8b1a12948787b7fa67aa25.jpeg",
+     "isCover": false,
+     "order_column": 5
+    },
+    "5": {
+     "id": 44295939,
+     "name": "IMG_1787.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/27e380650bf100711c36a817e5f421ca/6f53280b065cf251069cf918cdc01722.jpeg",
+     "isCover": false,
+     "order_column": 10
+    },
+    "6": {
+     "id": 44295953,
+     "name": "IMG_1786.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/47e5bbb11f83c917acde6f592610f22f/1547e96937c1b7f5abc9f6d7fac4c4c3.jpeg",
+     "isCover": false,
+     "order_column": 11
+    },
+    "7": {
+     "id": 44295961,
+     "name": "IMG_1785.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/b5b0aa0f56488373c62af55aa5ed92fd/e071629423180fd2f23c036f9abfca84.jpeg",
+     "isCover": false,
+     "order_column": 12
+    },
+    "8": {
+     "id": 44295973,
+     "name": "IMG_1761.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/be9ce38b3f508c13d5e2edf66ee24e0f/4bcf98e694a98a0dcf3502e8c7519704.jpeg",
+     "isCover": false,
+     "order_column": 13
+    },
+    "9": {
+     "id": 44295979,
+     "name": "IMG_1737.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/f224d90d6f70b805c52818efa147be25/42c802320784ae79fa3d07c97ac7c9c8.jpeg",
+     "isCover": true,
+     "order_column": 14
+    }
+   },
+   "intake_date": "1781557467",
+   "campus": "Main Campus",
+   "public_url": "https://new.shelterluv.com/embed/animal/206033980",
+   "adoptable": 1
+  },
+  {
+   "nid": 206037239,
+   "name": "Val",
+   "uniqueId": "RCKT-A-5337",
+   "sex": "Male",
+   "location": "Foster Home",
+   "birthday": "1650168937",
+   "age_group": {
+    "id": 29817,
+    "shelter_id": 184,
+    "name": "Adult Dog",
+    "legacy_id": 26096,
+    "age_from": 4,
+    "from_unit": "years",
+    "age_to": 7,
+    "to_unit": "years",
+    "type": "Dog",
+    "default_group": 0,
+    "created_at": "2023-09-19T02:49:08.000000Z",
+    "updated_at": "2024-11-20T06:24:32.000000Z",
+    "deleted_at": null,
+    "estimated_days": 1460,
+    "age_from_in_days": 1460,
+    "age_to_in_days": 2555,
+    "name_with_duration": "Adult Dog (4-7 years)",
+    "duration": "(4-7 years)"
+   },
+   "species": "Dog",
+   "breed": "Shepherd",
+   "secondary_breed": "Mix",
+   "primary_color": "Brown",
+   "secondary_color": null,
+   "weight_group": "Medium (20-59)",
+   "attributes": [],
+   "photos": {
+    "0": {
+     "id": 15480903,
+     "name": "20230220165143.png",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/66b92a11b186fdf9f414b19ba357e476/20230220165143.png",
+     "isCover": false,
+     "order_column": 1
+    },
+    "2": {
+     "id": 30463913,
+     "name": "IMG_4108.JPG",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/9df76ded990438c5f81bb9efff7995ce/9e25724d26b841ec642369acaad0d47d.JPG",
+     "isCover": false,
+     "order_column": 2
+    },
+    "3": {
+     "id": 30463921,
+     "name": "IMG_3730.JPG",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/c06898e414ddb5324f255c7a26c50be3/fd88112db98b3267c67da5a1a7284383.JPG",
+     "isCover": false,
+     "order_column": 3
+    },
+    "4": {
+     "id": 30463954,
+     "name": "Screenshot 2025-07-06 at 7.33.55\u202fPM.png",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/3a331fc21624ac0e529f0ad216c2f6eb/064754fd47453013104c9fd07b099f0a.png",
+     "isCover": false,
+     "order_column": 4
+    },
+    "5": {
+     "id": 31454613,
+     "name": "IMG_4099.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/bef73e272b36256f89b9aa4d4d35668a/575e20740430717033e14c84c844b3d7.jpeg",
+     "isCover": false,
+     "order_column": 6
+    },
+    "6": {
+     "id": 31454615,
+     "name": "IMG_4102.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/08b78d9874d42d62fbd89e4fd0fc382a/f1532c8f2cd106bcc20815486cbe8933.jpeg",
+     "isCover": false,
+     "order_column": 7
+    },
+    "7": {
+     "id": 31454616,
+     "name": "IMG_4100.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/9c2c14b66391a73a640233e8acf4b0c1/c70a2c127822d3f32eb2464ac99ef303.jpeg",
+     "isCover": false,
+     "order_column": 8
+    },
+    "8": {
+     "id": 31454618,
+     "name": "IMG_4103.png",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/a5b9287663c8c14235584a192bcd635e/93938e1ef3ff8ef26e80bc74920d28ad.png",
+     "isCover": false,
+     "order_column": 9
+    },
+    "9": {
+     "id": 32349797,
+     "name": "PXL_20230610_153053568.jpg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/e1119cdfebadb31d65d5e84394bf79f8/cdf15fb4fc5335606b0b3c3b2b75319c.jpg",
+     "isCover": false,
+     "order_column": 10
+    },
+    "10": {
+     "id": 32349814,
+     "name": "PXL_20240101_051155852.jpg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/1acad82e8d5856cd7dabbfd6d89507c4/31bf17b82c9f1184e73ef514b0a3419e.jpg",
+     "isCover": false,
+     "order_column": 11
+    },
+    "11": {
+     "id": 32349825,
+     "name": "IMG_3148.jpg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/84eb3ca805495282b0aceac518d23107/ce11a88021cc9964b56c4756def00205.jpg",
+     "isCover": false,
+     "order_column": 12
+    },
+    "12": {
+     "id": 32349828,
+     "name": "IMG_3630.JPG",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/a8a63b1ebd8b3e2becfaa158f20b73d5/53e5236b77aaebd294d84890afb96e54.JPG",
+     "isCover": false,
+     "order_column": 13
+    },
+    "13": {
+     "id": 32349846,
+     "name": "IMG_3743.JPG",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/ce2becb9d24ee2bdb549128d8278bd81/4743fc1b029f495092e52aad87918a9b.JPG",
+     "isCover": false,
+     "order_column": 14
+    },
+    "14": {
+     "id": 32349870,
+     "name": "d90e2968b74124fe830f8621598ce7e1.JPG",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/9bba18dbc24554ebcbe39fb6e6f439c8/1f061fa96297bd757e1c3762e5028d5a.JPG",
+     "isCover": true,
+     "order_column": 15
+    },
+    "15": {
+     "id": 42509659,
+     "name": "08c1e97e31aa23eedee7e8f30091808b.jpg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/77dcac6efc1624f85b0071545f684125/fbee8e67adf26786c8b0b93c8c95a762.jpg",
+     "isCover": false,
+     "order_column": 16
+    },
+    "16": {
+     "id": 33382876,
+     "name": "IMG_0724.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/1fb0f58d50fcea639cab8a7500b4f760/0a9190a45f7516207ce12ad945a66a86.jpeg",
+     "isCover": false,
+     "order_column": 17
+    },
+    "17": {
+     "id": 35340444,
+     "name": "IMG_4623.JPG",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/74f5bb57a8e295e5153a167f35fb620d/b6f5e29bf3f5c49f4bab8b0f9de368b8.JPG",
+     "isCover": false,
+     "order_column": 18
+    },
+    "18": {
+     "id": 41036477,
+     "name": "IMG_1655.JPG",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/54f6ad69e4989e5ca929de19bb507297/5d4fa4d67ca2babf26569228a49a292c.JPG",
+     "isCover": false,
+     "order_column": 20
+    }
+   },
+   "intake_date": "1753292407",
+   "campus": "Main Campus",
+   "public_url": "https://new.shelterluv.com/embed/animal/206037239",
+   "adoptable": 1
+  },
+  {
+   "nid": 210378883,
+   "name": "PW",
+   "uniqueId": "RCKT-A-7098",
+   "sex": "Male",
+   "location": "Foster Home",
+   "birthday": "1605427200",
+   "age_group": {
+    "id": 29817,
+    "shelter_id": 184,
+    "name": "Adult Dog",
+    "legacy_id": 26096,
+    "age_from": 4,
+    "from_unit": "years",
+    "age_to": 7,
+    "to_unit": "years",
+    "type": "Dog",
+    "default_group": 0,
+    "created_at": "2023-09-19T02:49:08.000000Z",
+    "updated_at": "2024-11-20T06:24:32.000000Z",
+    "deleted_at": null,
+    "estimated_days": 1460,
+    "age_from_in_days": 1460,
+    "age_to_in_days": 2555,
+    "name_with_duration": "Adult Dog (4-7 years)",
+    "duration": "(4-7 years)"
+   },
+   "species": "Dog",
+   "breed": "Mixed Breed (Large)",
+   "secondary_breed": "",
+   "primary_color": "Black",
+   "secondary_color": "White",
+   "weight_group": "Large (60-99)",
+   "attributes": [],
+   "photos": {
+    "4": {
+     "id": 25869720,
+     "name": "IMG_0130.png",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/d81be59a6575f1b381de0c1a065eba16/1e162cbdb57ff668d52dbef8a5398916.png",
+     "isCover": false,
+     "order_column": 76
+    },
+    "5": {
+     "id": 26452156,
+     "name": "IMG_1405.png",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/9827ada926f3dcd0582770fc3468dc10/277c4c277408cb010f351377d94fcbda.png",
+     "isCover": false,
+     "order_column": 79
+    },
+    "6": {
+     "id": 26452161,
+     "name": "IMG_1406.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/08f81d16b5394cdc9becb60c2b1daaf1/37d28bc98f1bdc02c595d4391506228c.jpeg",
+     "isCover": false,
+     "order_column": 80
+    },
+    "12": {
+     "id": 28975895,
+     "name": "IMG_4636.png",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/0b793763edb897e0ab6043b03b3d96f4/16b0f646d251d7cb3e0a278a471878b6.png",
+     "isCover": false,
+     "order_column": 90
+    },
+    "15": {
+     "id": 29264811,
+     "name": "IMG_5037.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/340b1d72b3bc23e906fa6f838a04daee/383d493f82f7e40aab487b9de8f9e9d1.jpeg",
+     "isCover": false,
+     "order_column": 93
+    },
+    "16": {
+     "id": 29702096,
+     "name": "IMG_5605.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/5c23adf5aaed20538ea2aaef8091bd99/76e2b57ffe3de5f463898fca0927c75c.jpeg",
+     "isCover": false,
+     "order_column": 94
+    },
+    "17": {
+     "id": 30005259,
+     "name": "IMG_0324.jpg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/3fc6f2ee1f291c4a56cc7c4318c7e50a/030fd01fcbcca95b304f3ccc14f4fe48.jpg",
+     "isCover": false,
+     "order_column": 95
+    },
+    "18": {
+     "id": 30005267,
+     "name": "IMG_0271.jpg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/d9432526918a64e54d5d7bd3792e1346/e39138e292e5860000c40f579215357f.jpg",
+     "isCover": false,
+     "order_column": 96
+    },
+    "19": {
+     "id": 31794999,
+     "name": "att.JcHGT8Fn5bINIT-mPwCkxAT3VH4tw713UlET1O1XJQI.jpg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/596b05440ed5f4cf9ad0852ead3f0348/c06f2b5da917b0e6e071b594658d2b3a.jpg",
+     "isCover": false,
+     "order_column": 97
+    },
+    "20": {
+     "id": 31795002,
+     "name": "IMG_1380.jpg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/b5c4a823c1983c4193fb844c79c881a5/c86f768480bfc883c05d407a3435c92b.jpg",
+     "isCover": false,
+     "order_column": 98
+    },
+    "21": {
+     "id": 31795008,
+     "name": "IMG_1232.jpg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/870ec597437bc76a07d14fa66acd3b65/6deab0d77c8f9a7eac1f58c6d8023a9e.jpg",
+     "isCover": false,
+     "order_column": 99
+    },
+    "22": {
+     "id": 31795027,
+     "name": "IMG_1741.JPG",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/109dff56093dee948331caef2e533d0e/2af1e15811fe99de9997f8d5c5f01cdf.JPG",
+     "isCover": false,
+     "order_column": 100
+    },
+    "23": {
+     "id": 31795033,
+     "name": "IMG_1664.JPG",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/483c25a1e85352736cf311d0a7a006fa/349c5aa83c428336409d10e7883bd6de.JPG",
+     "isCover": false,
+     "order_column": 101
+    },
+    "24": {
+     "id": 31795042,
+     "name": "IMG_1647.JPG",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/7cccc18da608edca8273d5d0a28df0ef/8848263f30bfb46bebacb7347cf7b406.JPG",
+     "isCover": false,
+     "order_column": 103
+    },
+    "25": {
+     "id": 33644244,
+     "name": "IMG_2763.jpg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/d25b54add95602637b07fd89c56451db/908deb6d5c7e600777fd5a1e76ef9446.jpg",
+     "isCover": false,
+     "order_column": 104
+    },
+    "26": {
+     "id": 33644246,
+     "name": "0cabfa73a256feafb7dc4dc3d3c2a8bb.jpg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/d5c3419877895ad922186e45102fe8f8/cc0af112676d60da1d11c1833a243406.jpg",
+     "isCover": false,
+     "order_column": 105
+    },
+    "29": {
+     "id": 39914835,
+     "name": "IMG_0944.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/ad881d7e07c83424ebd84648454489db/aad5377b631b0ca188b81140d332d52e.jpeg",
+     "isCover": true,
+     "order_column": 116
+    },
+    "30": {
+     "id": 39914836,
+     "name": "IMG_0925.jpeg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/2fa8ef08f3f1310ccd3c588bdd51cd49/86106e223f30c40105357843b7a67232.jpeg",
+     "isCover": false,
+     "order_column": 117
+    },
+    "31": {
+     "id": 39914837,
+     "name": "IMG_0919.jpg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/330a569841fac916e7f91e415ae7e24a/f9e83ff4fceff0cab925e365054319e2.jpg",
+     "isCover": false,
+     "order_column": 118
+    },
+    "32": {
+     "id": 39914838,
+     "name": "IMG_3836.jpg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/dd817ae5853353c594c45cc3724e116c/2bef4098ac0ecd728466a30a70dd1c9e.jpg",
+     "isCover": false,
+     "order_column": 119
+    },
+    "33": {
+     "id": 43048333,
+     "name": "IMG_0750.jpg",
+     "url": "https://new-s3.shelterluv.com/profile-pictures/f20339abf7abf3cd83300b9268d665c8/bd02e28fdd98bf73b7e081b984981c80.jpg",
+     "isCover": false,
+     "order_column": 120
+    }
+   },
+   "intake_date": "1737780935",
+   "campus": "Main Campus",
+   "public_url": "https://new.shelterluv.com/embed/animal/210378883",
+   "adoptable": 1
+  }
+ ],
+ "show": {
+  "filters": true,
+  "adoptionLink": true,
+  "defaultSort": "oldest",
+  "field_campus": false,
+  "has_multiple_campuses": false
+ }
+}

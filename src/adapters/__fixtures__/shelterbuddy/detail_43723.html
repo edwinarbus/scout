@@ -1,0 +1,544 @@
+
+			<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+			<html>
+			<head>
+				<title>Marin Humane</title>
+                <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript" src="/jscript/common.js?v=1720"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.7.3/jquery-ui.min.js"></script>
+	<script language="javascript" type="text/javascript" src="/jscript/jquery.fancybox.pack.js?v=1720"></script>
+				<meta property="og:title" content="I found this pet online:" />  
+ <meta property="og:description" content="Charlotte, Dog, German Shepherd" />  
+ <meta property="og:image" content="http://marinpets.shelterbuddy.com/https://mhs.shelterbuddy.com/storage/image/208ac824f8b74bf682247f1219eae200-1777574685-1777574699-jpg/600---n" /> 
+
+				<link rel="stylesheet" type="text/css" href="/customise/style.css">
+    <link rel="stylesheet" type="text/css" href="">
+				<link rel="stylesheet" type="text/css" href="/css/generic.css" />
+				<script language="javascript" type="text/javascript" src="/jscript/browserCheck.js"></script>
+<script language="javascript" type="text/javascript" src="/jscript/xmlHttp.js"></script>
+<script language="javascript" type="text/javascript" src="/jscript/arraySelect.js"></script>
+<script language="javascript" type="text/javascript" src="/jscript/disableField.js"></script>
+<script language="javascript" type="text/javascript">
+
+function clearmodels(theList) 
+{
+	//clears the select list
+	var count = theList.length;
+	var i;
+	for(i=1 ; i<count ; i++)
+	{ 
+		theList[1]= null;
+	}
+}
+
+function animalTypeChangeByAdoptableCanine(frm, isShowingBreedSearchForCanines)
+{
+	//this function runs for onchange even of animal type.
+	//assume that the form has a FERAL field.
+	var oldType;
+	var animalType = frm.animalType.value;
+	
+	//A rather awesome fix for Adult/Juvenile searches
+	animalType = animalType.split(",",1);
+
+	if(!isShowingBreedSearchForCanines && (animalType[0] === "3" || animalType[0] === "16"))
+	{
+		$(".breed-search").addClass("hide");
+	}
+	else
+	{
+		$(".breed-search").removeClass("hide");
+	}
+	
+	callAjaxEval("/search/colourAjax.asp?formName="+ frm.name +"&animalType="+ animalType +"&defaultPrimary=" + frm.colour.value + "&defaultSecondary=" + frm.colour2.value, "");	
+	
+	var b1 = frm.breed;
+	var b2 = frm.breedHidden;
+    var hb1 = frm.breed2;
+	var hb2 = frm.breed2Hidden;
+	
+	b1.value="";
+	b2.value="";
+	hb1.value="";
+	hb2.value="";
+}
+
+function animalTypeChange (frm)
+{	
+	animalTypeChangeByAdoptableCanine(frm, null)	
+}
+
+function changeStatusDate()
+{
+	document.form.statusdate.value = "7/1/2026";
+	
+	//make the petdetect drop out date the value of the status date
+	if (document.form.status.value == 10)
+	{	
+		document.form.petDetectDate.value = "7/11/2026 11:53:18 AM";
+	}
+}
+
+</script>
+
+<script language="javascript" type="text/javascript">
+<!--
+function newWindowBar(url, target)
+{
+	window.open(url,target,
+		'left=100,top=100,width=650,height=450,location=yes,menubar=yes,toolbar=yes,resizable,scrollbars,status');
+}
+-->
+</script>
+                
+			</head>
+			<body >
+
+<div id="contentmain" >
+
+	<div id="topmenu"></div>
+
+
+		
+<script language="javascript" type="text/javascript" src="/jscript/NewWindow.js"></script>            
+<script language="javascript" type="text/javascript" src="/jscript/jquery.jcarousel.min.js?v=1720"></script>
+<script language="javascript" type="text/javascript" src="/jscript/PreLoadImg.js?v=1720"></script>
+<script language="javascript" type="text/javascript" src="/jscript/PetPhotoCarousel.js?v=1720"></script>
+<script language="javascript" type="text/javascript" src="/jscript/jquery.fancybox/source/jquery.fancybox.pack.js?v=1720"></script>
+
+<link rel="stylesheet" type="text/css" href="/css/PetPhotoCarousel.css?v=1720" /> 
+
+<!-- Add fancyBox main JS and CSS files -->
+    <script type="text/javascript" src="/jscript/jquery.fancybox/source/jquery.fancybox.js?v=1720"></script>
+    <link rel="stylesheet" type="text/css" href="/jscript/jquery.fancybox/source/jquery.fancybox.css?v=1720" media="screen" />
+ 
+    <!-- Add Button helper (this is optional) -->
+    <link rel="stylesheet" type="text/css" href="/jscript/jquery.fancybox/source/helpers/jquery.fancybox-buttons.css?v=1720" />
+    <script type="text/javascript" src="/jscript/jquery.fancybox/source/helpers/jquery.fancybox-buttons.js?v=1720"></script>
+ 
+    <!-- Add Thumbnail helper (this is optional) -->
+    <link rel="stylesheet" type="text/css" href="/jscript/jquery.fancybox/source/helpers/jquery.fancybox-thumbs.css?v=1720" />
+    <script type="text/javascript" src="/jscript/jquery.fancybox/source/helpers/jquery.fancybox-thumbs.js?v=1720"></script>
+ 
+    <!-- Add Media helper (this is optional) -->
+    <script type="text/javascript" src="/jscript/jquery.fancybox/source/helpers/jquery.fancybox-media.js?v=1720"></script>
+                        
+<script type="text/javascript">
+    $(document).ready(function () {
+        //preload images:
+        jQuery('#mycarousel').jcarousel();
+        jQuery.preLoadImages($(".fancyBoxGroup").attr("href")); 
+        $('.fancybox').fancybox({
+            openEffect: 'none',
+            closeEffect: 'none',
+
+            prevEffect: 'none',
+            nextEffect: 'none',
+
+            closeBtn: true,
+
+            helpers: {
+                title: {
+                    type: 'inside'
+                },
+                buttons: {},
+                thumbs : {
+                        width  : 50,
+                        height : 50
+                    }
+            },
+
+            afterLoad: function () {
+                this.title = 'Image ' + (this.index + 1) + ' of ' + this.group.length ;
+            }
+        });
+    });
+</script>
+
+<div id="Div1">
+		    		
+	    
+<style>
+
+
+#petDefaultPic
+{
+    width:204px;
+}
+
+
+img.thumb {
+	/*border:solid 3px #A5A5A5;*/
+	margin:0px;
+	width:75px;
+}
+
+#animal_gallery {
+	margin:0px;
+	margin-bottom:20px;
+	padding:0px;
+	overflow:hidden;
+	text-align:center;
+	
+	display:inline-block;
+	/*width:210px;*/
+	vertical-align:top;
+	float:left;
+	
+}
+#animal_gallery img  
+{
+    max-width:210px;
+    /*border:3px solid #8C8C8C;*/
+    
+}
+</style>
+<fieldset>
+		
+		<legend class="animalNameHeader">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Charlotte's Details&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</legend>
+
+			
+			<table id="Table1"  class="animalFormTable" cellspacing="0">
+
+
+<script language="javascript" type="text/javascript" src="/jscript/PreLoadImg.js?v=1720"></script>
+<script language="javascript" type="text/javascript" src="/jscript/PetPhotoCarousel.js?v=1720"></script>
+<script language="javascript" type="text/javascript" src="/jscript/jquery.qtip.min.js?1720"></script>
+            <link type="text/css" href="/css/jquery-ui.css?1720" rel="stylesheet" />
+            <link type="text/css" href="/css/jquery.qtip.min.css?1720" rel="stylesheet" />
+
+<script language="javascript" type="text/javascript">
+
+
+
+    $(document).ready(function () {
+
+
+
+        /*****************************TOOL TIPS********************************/
+        initQtip();     //jscript/common.js
+
+        //add a tool tip to any elements with the class for the colour match field.
+        $("#imgTwitter, #imgFacebook, #imgSendFriend, #imgPrint, .petIcon").qtip({
+       content: { text: false },       //display the title attribute of the img tag.
+       style: {
+           tip: true, // Give it a speech bubble tip with automatic corner detection
+           widget: true,
+            def:false,
+            classes: 'qtip-rounded ui-tooltip-rounded ui-corner-bottom ui-corner-top'
+
+       },
+       
+
+       position: {
+           corner: {
+               tooltip: 'topRight',   //the top right of my tooltip will display on the bottom left of the target
+               target: 'bottomLeft'
+           }
+       }
+   });  //qtip
+
+   //preload images:
+
+   jQuery.preLoadImages($(".fancyBoxGroup").attr("href"));
+});
+
+
+
+
+var addthis_share =
+{
+
+   
+
+    templates: {
+
+        twitter: 'I found this pet at Marin Humane Society: Charlotte, Dog, German Shepherd {{url}}'
+
+    }
+
+}
+
+
+
+</script>
+				<tr> 
+					<td style="vertical-align:top;" colspan="2">
+					<div class="addthis_toolbox addthis_default_style ">
+				                        <a class="addthis_button_twitter" style="cursor:pointer" title=" " >
+				                            <img src="/customise/images/TWITTER_LOGO.jpg" id="imgTwitter" alt="Tweet me!" title="Tweet me!" /></a>
+				                        <a class="addthis_button_facebook" style="cursor:pointer" title="I found this pet at Marin Humane Society: Charlotte, Dog, German Shepherd" addthis:description="I found this pet at Marin Humane Society: Charlotte, Dog, German Shepherd">
+				                            <img src="/customise/images/FACEBOOK_LOGO.jpg" id="imgFacebook" alt="Do you know a friend that could be my new BFF?  Share me now!" /></a>
+										<g:plusone annotation="inline"></g:plusone>
+				                    </div>
+									<script type="text/javascript">    var addthis_config = { "data_track_clickback": true };</script>
+				                	<script type="text/javascript" src="https://s7.addthis.com/js/250/addthis_widget.js#username=marinhumane"></script>
+
+								
+<div id="animal_gallery" class="border">
+
+
+                <a href="https://mhs.shelterbuddy.com/storage/image/208ac824f8b74bf682247f1219eae200-1777574685-1777574699-jpg/600---n" rel="mygallery" class="fancyBoxGroup fancyBoxCenter" data-fancybox-type="image"><img src="https://mhs.shelterbuddy.com/storage/image/208ac824f8b74bf682247f1219eae200-1777574685-1777574699-jpg/600---n" id="petDefaultPic" border="0"  /></a>
+                
+                
+                    <ul id="mycarousel" class="jcarousel-skin-tango">
+                    
+        		                            
+                <li><a href="https://mhs.shelterbuddy.com/storage/image/e36cf8ccc2ce4c40a2bdafa8c4b49a88-1774482737-1774482741-jpg/600---n" rel="mygallery" class="fancyBoxGroup fancyBoxCenter" data-fancybox-type="image"><img src="https://mhs.shelterbuddy.com/storage/image/e36cf8ccc2ce4c40a2bdafa8c4b49a88-1774482737-1774482741-jpg/600---n" class="thumb" border="0" /></a></li>
+                						    
+                
+        		                            
+                <li><a href="https://mhs.shelterbuddy.com/storage/image/c51000c8e8d84316a779f465005e23db-1774482494-1774482500-jpg/600---n" rel="mygallery" class="fancyBoxGroup fancyBoxCenter" data-fancybox-type="image"><img src="https://mhs.shelterbuddy.com/storage/image/c51000c8e8d84316a779f465005e23db-1774482494-1774482500-jpg/600---n" class="thumb" border="0" /></a></li>
+                						    
+                
+        		                            
+                <li><a href="https://mhs.shelterbuddy.com/storage/image/e9cf533911c248ca866869026ba6f4ca-1774482314-1774482322-jpg/600---n" rel="mygallery" class="fancyBoxGroup fancyBoxCenter" data-fancybox-type="image"><img src="https://mhs.shelterbuddy.com/storage/image/e9cf533911c248ca866869026ba6f4ca-1774482314-1774482322-jpg/600---n" class="thumb" border="0" /></a></li>
+                						    
+                
+        		                            
+                <li><a href="https://mhs.shelterbuddy.com/storage/image/5559ed7df2bc43c4b51b6edc23db600a-1774481741-1774481770-jpg/600---n" rel="mygallery" class="fancyBoxGroup fancyBoxCenter" data-fancybox-type="image"><img src="https://mhs.shelterbuddy.com/storage/image/5559ed7df2bc43c4b51b6edc23db600a-1774481741-1774481770-jpg/600---n" class="thumb" border="0" /></a></li>
+                						    
+                
+        		                            
+                <li><a href="https://mhs.shelterbuddy.com/storage/image/dcee5ac9520a47aab7e4ad8094b38d42-1771369853-1771369860-jpg/600---n" rel="mygallery" class="fancyBoxGroup fancyBoxCenter" data-fancybox-type="image"><img src="https://mhs.shelterbuddy.com/storage/image/dcee5ac9520a47aab7e4ad8094b38d42-1771369853-1771369860-jpg/600---n" class="thumb" border="0" /></a></li>
+                						    
+                
+        		                            
+                <li><a href="https://mhs.shelterbuddy.com/storage/image/128419db8376406e928767a437598c62-1771369853-1771369858-jpg/600---n" rel="mygallery" class="fancyBoxGroup fancyBoxCenter" data-fancybox-type="image"><img src="https://mhs.shelterbuddy.com/storage/image/128419db8376406e928767a437598c62-1771369853-1771369858-jpg/600---n" class="thumb" border="0" /></a></li>
+                						    
+                
+        		                            
+                <li><a href="https://mhs.shelterbuddy.com/storage/image/5029ee84d1ad4ce6a4b6aaf037e813dc-1771358564-1771358600-jpg/600---n" rel="mygallery" class="fancyBoxGroup fancyBoxCenter" data-fancybox-type="image"><img src="https://mhs.shelterbuddy.com/storage/image/5029ee84d1ad4ce6a4b6aaf037e813dc-1771358564-1771358600-jpg/600---n" class="thumb" border="0" /></a></li>
+                						    
+                
+        		                            
+                <li><a href="https://mhs.shelterbuddy.com/storage/image/cb3a6edb21dc42d08635cc02b23b6f3a-1771358563-1771358597-jpg/600---n" rel="mygallery" class="fancyBoxGroup fancyBoxCenter" data-fancybox-type="image"><img src="https://mhs.shelterbuddy.com/storage/image/cb3a6edb21dc42d08635cc02b23b6f3a-1771358563-1771358597-jpg/600---n" class="thumb" border="0" /></a></li>
+                						    
+                
+        		                            
+                <li><a href="https://mhs.shelterbuddy.com/storage/image/325a1fb328d7464480e91d20db5a9816-1771358563-1771358588-jpg/600---n" rel="mygallery" class="fancyBoxGroup fancyBoxCenter" data-fancybox-type="image"><img src="https://mhs.shelterbuddy.com/storage/image/325a1fb328d7464480e91d20db5a9816-1771358563-1771358588-jpg/600---n" class="thumb" border="0" /></a></li>
+                						    
+                
+        		                            
+                <li><a href="https://mhs.shelterbuddy.com/storage/image/b47e43f4952e4ddd81ab0648e0976df4-1765408636-1771196995-jpeg/600---n" rel="mygallery" class="fancyBoxGroup fancyBoxCenter" data-fancybox-type="image"><img src="https://mhs.shelterbuddy.com/storage/image/b47e43f4952e4ddd81ab0648e0976df4-1765408636-1771196995-jpeg/600---n" class="thumb" border="0" /></a></li>
+                						    
+                
+        		                            
+                <li><a href="https://mhs.shelterbuddy.com/storage/image/c783002ba29a4c06b04198b401b11eb9-1765408616-1771196992-jpeg/600---n" rel="mygallery" class="fancyBoxGroup fancyBoxCenter" data-fancybox-type="image"><img src="https://mhs.shelterbuddy.com/storage/image/c783002ba29a4c06b04198b401b11eb9-1765408616-1771196992-jpeg/600---n" class="thumb" border="0" /></a></li>
+                						    
+                
+        		                            
+                <li><a href="https://mhs.shelterbuddy.com/storage/image/422e985b2b444b4fa156ddf9e5ffffd5-1768430638-1771196982-jpeg/600---n" rel="mygallery" class="fancyBoxGroup fancyBoxCenter" data-fancybox-type="image"><img src="https://mhs.shelterbuddy.com/storage/image/422e985b2b444b4fa156ddf9e5ffffd5-1768430638-1771196982-jpeg/600---n" class="thumb" border="0" /></a></li>
+                						    
+                
+        		                            
+                <li><a href="https://mhs.shelterbuddy.com/storage/image/289924de843e49db80603b2bd2f28228-1765560279-1765560285-jpg/600---n" rel="mygallery" class="fancyBoxGroup fancyBoxCenter" data-fancybox-type="image"><img src="https://mhs.shelterbuddy.com/storage/image/289924de843e49db80603b2bd2f28228-1765560279-1765560285-jpg/600---n" class="thumb" border="0" /></a></li>
+                						    
+                
+
+
+</ul>
+</div>      <!-- animal_gallery -->
+<div id="navigationLinks">
+    <a href="#" id="mycarousel-prev">&lt; Prev</a> <a href="#" id="mycarousel-next">Next &gt;</a>
+</div>
+
+						<table id="detailsTable" class="animalDetailsTableBorder" border="0">
+							
+							<tr>
+							    
+							    <td class="viewAnimalHeading">Type</td>
+							    <td class="viewAnimalCell" >Dog</td>
+							    
+							    <td>&nbsp;</td>
+							    <td>&nbsp;</td>
+							</tr>
+							<tr>					
+								<td class="viewAnimalHeading">Breed</td>
+								<td class="viewAnimalCell" >German Shepherd Cross</td>
+							</tr>
+							
+								
+								<tr>
+									<td class="viewAnimalHeading">Second Breed</td>
+									<td class="viewAnimalCell" colspan="3">Doberman Pinscher</td>
+								</tr>
+								
+							<tr>
+								<td class="viewAnimalHeading">Sex</td>
+								<td class="viewAnimalCell">Female</td>					
+							</tr>
+							<tr>
+								<td class="viewAnimalHeading">Color</td>
+								<td class="viewAnimalCell">Black / Brown</td>
+							</tr>
+							
+							
+							<tr>
+								<td class="viewAnimalHeading">Weight</td>
+								<td class="viewAnimalCell">
+								50.2 lbs 
+								</td>
+							</tr>
+							
+							</tr>
+							<tr>							    
+								<td class="viewAnimalHeading">Spayed / Neutered</td>
+								<td class="viewAnimalCell">Yes</td>
+							</tr>
+							<tr>
+								<td class="viewAnimalHeading">Age</td>
+								<td class="viewAnimalCell">1Yrs 2Mths 1Wks (approx)</td>
+							</tr>
+							
+							
+				                    <tr>
+				                        <td class="viewAnimalHeading">Size</td>
+				                        <td class="viewAnimalCell">Medium</td>
+				                    </tr>
+				                
+								
+								<tr>
+									<td colspan="8" class="viewAnimalCell">
+										My health has been checked.<br>My vaccinations are up to date.<br>My worming is up to date.<br />
+											    I have been microchipped.<br />
+										
+									</td>
+								</tr>
+                               
+                               
+
+
+                                
+
+						<!-- START RANGERS DETAILS
+						**************************************************************************************************-->
+							
+						<!-- END RANGERS DETAILS
+						**************************************************************************************************-->
+						
+							<tr>
+								<td colspan="8" class="viewAnimalCell"><span class="viewAnimalHeading">Animal Identification</span><br>
+									Animal ID: <U><B>306860</B></U><br />
+<B>Please take note of the Animal ID before contacting us</B>
+<br />
+								</td>
+							</tr>
+							
+									
+							
+													<tr>
+														<td colspan="8" class="viewAnimalCell"><span class="viewAnimalHeading">Suitability Guide</span>
+												
+																							
+														<br />OK with Cats&nbsp;<img src="/images/icons/loveCats.gif " style="width:20px; height:20px">&nbsp;&nbsp;										
+														<br />OK with Dogs&nbsp;<img src="/images/icons/loveDogs.gif " style="width:20px; height:20px">&nbsp;&nbsp;
+													</td>
+												</tr>
+												
+								
+								
+								
+								<tr>
+									<td class="viewAnimalHeading"></td>
+									<td class="viewAnimalCell"></td>
+								</tr>
+							
+						</table>
+					</td>
+					
+				</tr>
+               
+                
+				
+                <tr><td>&nbsp;</td></tr>
+                 
+                    <tr><td><h3 class="viewAnimalHeading">Where can you find me?</h3></td></tr>
+                    <tr><td>
+                <p class="viewAnimalCell">I am at the Marin Humane location.<br />You can contact me by 
+<blockquote class="viewBlock">Phone (415) 506-6225<br />Address 171 Bel Marin Keys Blvd. Novato<br /><br />
+</blockquote></p>
+                    </td></tr>
+                    
+    				</table>
+	
+    				<h3 class="viewAnimalHeading">A Little Bit About Me</h3>
+					<p class="viewAnimalCell">Meet Charlotte: a young, sweet Doberman mix with a love for life! Despite a tough start in life, she hasn't lost her zest.<br><br><BR><BR>Charlotte arrived as a young stray with significant weakness and muscle loss in her hind legs due to a severe case of hip dysplasia. To relieve her pain and help her move more normally, she underwent surgery on both hips in November 2025 to remove the poorly fitted "ball" portions of her joints. Because her muscles were so weak before the procedure, she has required intensive physical therapy and underwater treadmill sessions to rebuild her strength. Charlotte has made incredible progress in foster care and can now walk and run well, though she still finds stairs a bit challenging. She is a happy, resilient dog who can just about keep up with the best of them now!<br><br><BR><BR>Charlotte is a breed mix that can show some challenging behaviors during adolescence. Charlotte has been in our care a long time and we've learned that meeting new people can be challenging for her, this is very common for both German Shepherds and Dobermans. Charlotte needs help to continue learning how to greet new people and understanding that new humans are not a threat. We are working on this a LOT. Her fosters are working on it and we have our training staff working on it. Her new family will get all the support we can offer to help them learn the skills we are teaching Charlotte so they can keep up training foundation we are building. <br><br><BR><BR>Since Charlotte spent so much time healing in a foster home, they got to know her really well! Here's what her foster family has to say: "Charlotte is such a sweetie! She got along great with our two small dogs. She can get a bit excitable when meeting other dogs, but she just wants to play with them. She knows 'fetch', 'sit', 'down' and 'leave it.' We walked her a lot due to her surgery and she can now enjoy hikes and romping around with her doggie friends. Charlotte loves squeaky toys, and is crate and house trained. Overall, she's a lovely dog and will make a great addition to her new home." ***ADOPTION FEE SPONSORED***<br><br></p>					
+					<p class="viewAnimalCell">
+
+                <script language="javascript">
+                    function ChangeVideo(next)
+                    {
+                    
+                        if (next)
+                        {
+                            if (currentVideo != animalVideos.length)
+                            {
+                                currentVideo ++;
+                                SetupVideo();
+                            }
+                        }
+                        else
+                        {
+                            if (currentVideo != 1)
+                            {
+                                currentVideo --;
+                                SetupVideo();
+                            }
+                        }
+                        
+                        
+                    }
+                    
+                    function SetupVideo()
+                    {
+                        var nextBtn = $("#videoImageNext");
+                        var prevBtn = $("#videoImagePrevious");
+                        
+                        nextBtn.attr("src", "/images/nextArrow.png");
+                        prevBtn.attr("src", "/images/previousArrow.png");
+                        
+                        // determine which arrows to show
+                        if (currentVideo === 1)
+                        {
+                            prevBtn.attr("src", "/images/previousArrowDisabled.png");
+                        }
+                        
+                        if (currentVideo === animalVideos.length)
+                        {
+                            nextBtn.attr("src", "/images/nextArrowDisabled.png");
+                        }    
+                                
+                        $("#videoIframe").attr('src', "https://www.youtube.com/embed/" + animalVideos[currentVideo-1]);
+                    }
+                    
+                    var animalVideos = new Array();
+                    var currentVideo = 1;
+                    
+                </script>
+                <Table width="100%">
+                <tr><td valign="middle">
+                <a href="#" onclick="ChangeVideo(false); return false;"><img src="/images/previousArrowDisabled.png" id="videoImagePrevious"  class="hide" Title="Previous" /></a>
+                <iframe title="YouTube video player" id="videoIframe" width="640" height="390" src="" frameborder="0" allowfullscreen></iframe>
+                <a href="#" onclick="ChangeVideo(true); return false;"><img src="/images/nextArrow.png" id="videoImageNext" class="hide" Title="Next" /></a>
+                </td></tr></table>
+                    <script language="javascript">
+                    
+                        animalVideos.push("4jmuUiMqNmM");
+                        
+                     $(document).ready(function () {
+                        SetupVideo();
+                     });
+                    </script>
+                    </p>			
+					
+					<p class="viewAnimalCell"></p><p class="viewAnimalCell">Though our adoption animal information is updated frequently, please understand that there is a chance that when you arrive at our location the animal you have an interest in might have been adopted or another party might be going through the adoption process at that time.<br /></p>
+				</fieldset>
+				
+</div>
+</div>
+
+			</body>
+
+		</html>
+		

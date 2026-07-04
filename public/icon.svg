@@ -1,0 +1,14 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="112" fill="#1c8047"/>
+  <!-- Scout dog head, two perked ears, in warm cream on grass green -->
+  <g fill="#f7e6c8">
+    <path d="M170 210 C 128 130 140 66 190 40 C 238 66 260 132 244 208 Z"/>
+    <path d="M342 210 C 384 130 372 66 322 40 C 274 66 252 132 268 208 Z"/>
+    <path d="M256 118 C 342 118 402 178 402 262 C 402 350 336 410 256 410 C 176 410 110 350 110 262 C 110 178 170 118 256 118 Z"/>
+  </g>
+  <!-- eyes + muzzle knocked out in green -->
+  <circle cx="206" cy="256" r="26" fill="#1c8047"/>
+  <circle cx="306" cy="256" r="26" fill="#1c8047"/>
+  <path d="M256 300 c -30 0 -52 20 -52 46 0 24 24 40 52 40 s 52 -16 52 -40 c 0 -26 -22 -46 -52 -46 Z" fill="#1c8047"/>
+  <circle cx="256" cy="322" r="20" fill="#f7e6c8"/>
+</svg>

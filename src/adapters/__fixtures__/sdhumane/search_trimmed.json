@@ -1,0 +1,365 @@
+{
+ "request": "MultiDict({'AnimalType': ['ALL'], 'Location': ['El Cajon Campus', 'Escondido Campus', 'Oceanside Campus - Cats/Small Animals', 'Oceanside Campus - Dogs', 'San Diego Campus - 5500', 'San Diego Campus - 5485', 'San Diego Campus - Behavior Center', 'San Diego Campus - 5480', 'Nursery - San Diego', 'San Diego Campus - 5495', 'San Diego Campus - 5525'], 'StatusCategory': ['available']})",
+ "response": [
+  {
+   "AnimalId": 176054,
+   "Medical": "https://sdhumane.shelterbuddy.com/api/v2/animal/medicalhistory/176054",
+   "AnimalType": "Dog",
+   "Location": "Oceanside Campus - Cats/Small Animals",
+   "Intake_Source_Name": "Owner Surrender",
+   "Status": "Available For Adoption",
+   "SubStatus": "Behavior Concern Noted",
+   "SubStatuses_Primary": "Behavior Concern Noted",
+   "SubStatuses_Secondary": null,
+   "SubStatuses_Tertiary": null,
+   "SubStatuses_Quaternary": null,
+   "SubStatuses_Quinary": null,
+   "Icons_Primary": "Has Done Well with Kids",
+   "Icons_Secondary": "Only Dog Home",
+   "Icons_Tertiary": null,
+   "InFoster": false,
+   "Shelter": "APR - 576 Warehouse",
+   "LostFoundAddress": "Oceanside, CA, 92056, United States",
+   "Suburb": "Oceanside",
+   "Postcode": "92056",
+   "DateFound": null,
+   "Intake": "2026-04-26T19:35:00Z",
+   "StatusCategory": "available",
+   "Name": "Layla Blue",
+   "Sex": "Female",
+   "Breed": {
+    "Primary": "American Pit Bull Terrier",
+    "Secondary": null,
+    "IsCrossBreed": true
+   },
+   "Age": {
+    "Years": 11,
+    "Months": 5,
+    "Weeks": 1,
+    "IsApproximate": true,
+    "AgeGroup": "Senior"
+   },
+   "MainPhoto": {
+    "default": [
+     "/storage/image/4bff9b361aa64a6797bc2c512dab70df-1777828482-1777828498-jpeg/320-0-"
+    ]
+   },
+   "LastUpdatedUtc": "2026-06-21T02:06:10.65Z"
+  },
+  {
+   "AnimalId": 246470,
+   "Medical": "https://sdhumane.shelterbuddy.com/api/v2/animal/medicalhistory/246470",
+   "AnimalType": "Dog",
+   "Location": "San Diego Campus - 5480",
+   "Intake_Source_Name": "Ambulance",
+   "Status": "Available for Adoption - In Foster",
+   "SubStatus": null,
+   "SubStatuses_Primary": null,
+   "SubStatuses_Secondary": null,
+   "SubStatuses_Tertiary": null,
+   "SubStatuses_Quaternary": null,
+   "SubStatuses_Quinary": null,
+   "Icons_Primary": "Not Suitable for Dogs",
+   "Icons_Secondary": "Behavior Consult",
+   "Icons_Tertiary": "Probably Potty Trained",
+   "InFoster": true,
+   "Shelter": "5480 - In Foster",
+   "LostFoundAddress": "2045 University Avenue, San Diego, CA, 92104, United States",
+   "Suburb": "San Diego",
+   "Postcode": "92104",
+   "DateFound": "2026-03-31T07:00:00Z",
+   "Intake": "2026-03-31T20:16:00Z",
+   "StatusCategory": "available",
+   "Name": "Jetta",
+   "Sex": "Female",
+   "Breed": {
+    "Primary": "American Staffordshire Terrier",
+    "Secondary": null,
+    "IsCrossBreed": true
+   },
+   "Age": {
+    "Years": 10,
+    "Months": 0,
+    "Weeks": 3,
+    "IsApproximate": false,
+    "AgeGroup": "Mature Adult"
+   },
+   "MainPhoto": {
+    "default": [
+     "/storage/image/828f3b0a0f5f4d9c9078537ab09c4ab1-1775945864-1781553127-jpeg/320-0-"
+    ]
+   },
+   "LastUpdatedUtc": "2026-07-02T00:14:09.81Z"
+  },
+  {
+   "AnimalId": 259121,
+   "Medical": "https://sdhumane.shelterbuddy.com/api/v2/animal/medicalhistory/259121",
+   "AnimalType": "Dog",
+   "Location": "San Diego Campus - 5480",
+   "Intake_Source_Name": "Owner Surrender",
+   "Status": "Available for Adoption - In Foster",
+   "SubStatus": null,
+   "SubStatuses_Primary": null,
+   "SubStatuses_Secondary": null,
+   "SubStatuses_Tertiary": null,
+   "SubStatuses_Quaternary": null,
+   "SubStatuses_Quinary": null,
+   "Icons_Primary": "Has Additional Needs",
+   "Icons_Secondary": null,
+   "Icons_Tertiary": null,
+   "InFoster": true,
+   "Shelter": "5480 - In Foster",
+   "LostFoundAddress": "San Diego, CA, 92115, United States",
+   "Suburb": "San Diego",
+   "Postcode": "92115",
+   "DateFound": null,
+   "Intake": "2026-01-27T19:22:00Z",
+   "StatusCategory": "available",
+   "Name": "Flash",
+   "Sex": "Male",
+   "Breed": {
+    "Primary": "Siberian Husky",
+    "Secondary": null,
+    "IsCrossBreed": true
+   },
+   "Age": {
+    "Years": 9,
+    "Months": 8,
+    "Weeks": 3,
+    "IsApproximate": false,
+    "AgeGroup": "Mature Adult"
+   },
+   "MainPhoto": {
+    "default": [
+     "/storage/image/9394c3d130b2400e96319717298e8fdf-1780166813-1780170206-jpg/320-0-"
+    ]
+   },
+   "LastUpdatedUtc": "2026-06-01T20:23:01.25Z"
+  },
+  {
+   "AnimalId": 263280,
+   "Medical": "https://sdhumane.shelterbuddy.com/api/v2/animal/medicalhistory/263280",
+   "AnimalType": "Dog",
+   "Location": "Oceanside Campus - Dogs",
+   "Intake_Source_Name": "Owner Surrender",
+   "Status": "Available For Adoption",
+   "SubStatus": "Hidden Gem",
+   "SubStatuses_Primary": "Hidden Gem",
+   "SubStatuses_Secondary": "Foster Candidate",
+   "SubStatuses_Tertiary": null,
+   "SubStatuses_Quaternary": null,
+   "SubStatuses_Quinary": null,
+   "Icons_Primary": "Not Suitable for Dogs",
+   "Icons_Secondary": "Long Term Resident",
+   "Icons_Tertiary": "Has Additional Needs",
+   "InFoster": false,
+   "Shelter": "SLR - A Building",
+   "LostFoundAddress": "Oceanside, CA, 92057, United States",
+   "Suburb": "Oceanside",
+   "Postcode": "92057",
+   "DateFound": null,
+   "Intake": "2025-11-15T20:45:00Z",
+   "StatusCategory": "available",
+   "Name": "Zeus",
+   "Sex": "Male",
+   "Breed": {
+    "Primary": "German Shepherd",
+    "Secondary": null,
+    "IsCrossBreed": true
+   },
+   "Age": {
+    "Years": 10,
+    "Months": 0,
+    "Weeks": 2,
+    "IsApproximate": true,
+    "AgeGroup": "Senior"
+   },
+   "MainPhoto": {
+    "default": [
+     "/storage/image/6ac2c61367ae44298d03673dd76569f3-1781823108-1781823118-jpeg/320-0-"
+    ]
+   },
+   "LastUpdatedUtc": "2026-06-30T20:05:33.813Z"
+  },
+  {
+   "AnimalId": 264857,
+   "Medical": "https://sdhumane.shelterbuddy.com/api/v2/animal/medicalhistory/264857",
+   "AnimalType": "Dog",
+   "Location": "San Diego Campus - 5495",
+   "Intake_Source_Name": "Owner Surrender",
+   "Status": "Available For Adoption",
+   "SubStatus": "Foster Candidate",
+   "SubStatuses_Primary": "Foster Candidate",
+   "SubStatuses_Secondary": null,
+   "SubStatuses_Tertiary": null,
+   "SubStatuses_Quaternary": null,
+   "SubStatuses_Quinary": null,
+   "Icons_Primary": "Not Suitable for Cats",
+   "Icons_Secondary": "Not Suitable for Dogs",
+   "Icons_Tertiary": "Behavior Consult",
+   "InFoster": false,
+   "Shelter": "Temporary Adoption Kennels",
+   "LostFoundAddress": "Escondido, CA, 92026, United States",
+   "Suburb": "Escondido",
+   "Postcode": "92026",
+   "DateFound": null,
+   "Intake": "2026-02-08T21:19:00Z",
+   "StatusCategory": "available",
+   "Name": "Lucky",
+   "Sex": "Male",
+   "Breed": {
+    "Primary": "Jindo",
+    "Secondary": "Siberian Husky",
+    "IsCrossBreed": true
+   },
+   "Age": {
+    "Years": 9,
+    "Months": 8,
+    "Weeks": 2,
+    "IsApproximate": true,
+    "AgeGroup": "Mature Adult"
+   },
+   "MainPhoto": {
+    "default": [
+     "/storage/image/93fd941b853a41aaaf9fa8a0cb9eced5-1772138473-1772138487-jpg/320-0-"
+    ]
+   },
+   "LastUpdatedUtc": "2026-06-05T19:46:20.57Z"
+  },
+  {
+   "AnimalId": 276375,
+   "Medical": "https://sdhumane.shelterbuddy.com/api/v2/animal/medicalhistory/276375",
+   "AnimalType": "Dog",
+   "Location": "Oceanside Campus - Dogs",
+   "Intake_Source_Name": "Stray",
+   "Status": "Available For Adoption",
+   "SubStatus": "Behavior Concern Noted",
+   "SubStatuses_Primary": "Behavior Concern Noted",
+   "SubStatuses_Secondary": "K9 Adventure",
+   "SubStatuses_Tertiary": null,
+   "SubStatuses_Quaternary": null,
+   "SubStatuses_Quinary": null,
+   "Icons_Primary": "Not Suitable for Dogs",
+   "Icons_Secondary": "Long Term Resident",
+   "Icons_Tertiary": "Only Dog Home",
+   "InFoster": false,
+   "Shelter": "SLR - C Building",
+   "LostFoundAddress": "1506 S Pacific Street, Buccaneer Beach Park, Oceanside, CA, 92054, United States",
+   "Suburb": "Oceanside",
+   "Postcode": "92054",
+   "DateFound": "2025-07-04T07:00:00Z",
+   "Intake": "2025-07-09T21:27:00Z",
+   "StatusCategory": "available",
+   "Name": "Felicia",
+   "Sex": "Female",
+   "Breed": {
+    "Primary": "Labrador Retriever",
+    "Secondary": "German Shepherd",
+    "IsCrossBreed": true
+   },
+   "Age": {
+    "Years": 8,
+    "Months": 3,
+    "Weeks": 3,
+    "IsApproximate": false,
+    "AgeGroup": "Senior"
+   },
+   "MainPhoto": {
+    "default": [
+     "/storage/image/7f5932f3be60478c96fed6466c70c474-1759951189-1782849210-jpg/320-0-"
+    ]
+   },
+   "LastUpdatedUtc": "2026-06-30T19:53:54.353Z"
+  },
+  {
+   "AnimalId": 160928,
+   "Medical": "https://sdhumane.shelterbuddy.com/api/v2/animal/medicalhistory/160928",
+   "AnimalType": "Cat",
+   "Location": "El Cajon Campus",
+   "Intake_Source_Name": "Stray",
+   "Status": "Available For Adoption",
+   "SubStatus": null,
+   "SubStatuses_Primary": null,
+   "SubStatuses_Secondary": null,
+   "SubStatuses_Tertiary": null,
+   "SubStatuses_Quaternary": null,
+   "SubStatuses_Quinary": null,
+   "Icons_Primary": null,
+   "Icons_Secondary": null,
+   "Icons_Tertiary": null,
+   "InFoster": false,
+   "Shelter": "ECC - Feline Adoptions",
+   "LostFoundAddress": "sdhs, El Cajon, CA, 92021, United States",
+   "Suburb": "El Cajon",
+   "Postcode": "92021",
+   "DateFound": "2026-06-23T07:00:00Z",
+   "Intake": "2026-06-23T19:11:00Z",
+   "StatusCategory": "available",
+   "Name": "Precious",
+   "Sex": "Female",
+   "Breed": {
+    "Primary": "Domestic Short Hair",
+    "Secondary": null,
+    "IsCrossBreed": true
+   },
+   "Age": {
+    "Years": 11,
+    "Months": 8,
+    "Weeks": 2,
+    "IsApproximate": false,
+    "AgeGroup": "Senior"
+   },
+   "MainPhoto": {
+    "default": [
+     "/storage/image/f7d564ac02914ed8903e5a9fd8c6172b-1782245817-1782245837-jpg/320-0-"
+    ]
+   },
+   "LastUpdatedUtc": "2026-07-01T18:25:38.923Z"
+  },
+  {
+   "AnimalId": 177433,
+   "Medical": "https://sdhumane.shelterbuddy.com/api/v2/animal/medicalhistory/177433",
+   "AnimalType": "Cat",
+   "Location": "Oceanside Campus - Cats/Small Animals",
+   "Intake_Source_Name": "Owner Surrender",
+   "Status": "Available for Adoption - In Foster",
+   "SubStatus": null,
+   "SubStatuses_Primary": null,
+   "SubStatuses_Secondary": null,
+   "SubStatuses_Tertiary": null,
+   "SubStatuses_Quaternary": null,
+   "SubStatuses_Quinary": null,
+   "Icons_Primary": "Has Had Dog Friends",
+   "Icons_Secondary": "Part of a Bonded Pair",
+   "Icons_Tertiary": "Has Done Well with Kids",
+   "InFoster": true,
+   "Shelter": "APR - In Foster",
+   "LostFoundAddress": "Oceanside, CA, 92057, United States",
+   "Suburb": "Oceanside",
+   "Postcode": "92057",
+   "DateFound": null,
+   "Intake": "2025-11-23T22:16:00Z",
+   "StatusCategory": "available",
+   "Name": "Pedi Paws",
+   "Sex": "Male",
+   "Breed": {
+    "Primary": "Domestic Short Hair",
+    "Secondary": null,
+    "IsCrossBreed": true
+   },
+   "Age": {
+    "Years": 11,
+    "Months": 2,
+    "Weeks": 3,
+    "IsApproximate": true,
+    "AgeGroup": "Senior"
+   },
+   "MainPhoto": {
+    "default": [
+     "/storage/image/3b73f1dc254e4990a35d3c4d96c7e2e8-1773957302-1773957321-jpeg/320-0-"
+    ]
+   },
+   "LastUpdatedUtc": "2026-06-07T00:07:53Z"
+  }
+ ]
+}

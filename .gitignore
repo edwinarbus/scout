@@ -1,0 +1,16 @@
+# deps / build
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# local data: sqlite db + raw debug captures (can be large; regenerate via seed/ingest)
+data/
+
+# env / os
+.env*
+.DS_Store
+
+# test/coverage
+coverage/
