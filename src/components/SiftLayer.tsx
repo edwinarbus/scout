@@ -232,8 +232,12 @@ export default function SiftLayer({
         }
       >
         <div className="scout-pose-flight" style={poseOf(f.dog.id, "flight")}>
-          {/* same width as a fan slot — the pluck reads as ONE card */}
+          {/* same width as a fan slot — the pluck reads as ONE card. The
+              data-sift-card handle lets the deal measure this floater's live
+              orbit position the instant before it's plucked, so the fan card
+              can FLIP in from exactly here (see flipPluck in ScoutApp). */}
           <div
+            data-sift-card={f.dog.id}
             className="aspect-[5/7] w-[104px] sm:w-[clamp(96px,11vw,136px)]"
             style={
               f.dog.id === armedId

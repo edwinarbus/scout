@@ -106,11 +106,6 @@ interface AiSearchState {
   results: AiResult[];
 }
 
-type GeoState =
-  | { status: "pending" }
-  | { status: "granted"; latitude: number; longitude: number }
-  | { status: "denied" };
-
 /** Re-sort/land with the View Transitions API when available (smooth morph).
  * Starting a new transition auto-skips one already in flight, which rejects
  * the skipped transition's promises with InvalidStateError — expected here
@@ -125,6 +120,61 @@ function withViewTransition(update: () => void) {
     vt.finished.catch(() => {});
   } else {
     update();
+  }
+}
+
+const cssEsc = (v: string) =>
+  typeof CSS !== "undefined" && CSS.escape ? CSS.escape(v) : v.replace(/["\\]/g, "\\$&");
+
+/**
+ * Pluck a card out of the swirl into its fan slot — WITHOUT a view transition.
+ *
+ * A full-page `startViewTransition` composites a frozen snapshot of the entire
+ * page (the whole orbit included) on top of the live DOM for the transition's
+ * ENTIRE lifetime — not just root's own group animation — so every pluck froze
+ * the swirl for the ~0.8s the card took to land, read as the orbit stuttering.
+ * Instead we FLIP only the ONE new card: measure the orbiting floater's live
+ * screen rect the instant before it leaves, commit the state (floater gone, fan
+ * card mounted), then animate JUST that fan card from the orbit position into
+ * its slot. Nothing else is snapshotted, so the rest of the swirl keeps spinning
+ * perfectly smoothly underneath. Falls back to a soft rise if the floater isn't
+ * on screen (rare) and to an instant commit under reduced motion.
+ */
+function flipPluck(id: string | null, commit: () => void) {
+  const reduce =
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  const from =
+    id && !reduce && typeof document !== "undefined"
+      ? document.querySelector(`[data-sift-card="${cssEsc(id)}"]`)?.getBoundingClientRect()
+      : null;
+  flushSync(commit); // fan card now mounted; the orbiting floater is gone
+  if (!id || reduce) return;
+  const slot = document.querySelector<HTMLElement>(`[data-fan-card="${cssEsc(id)}"]`);
+  if (!slot) return;
+  const to = slot.getBoundingClientRect();
+  if (to.width === 0) return;
+  const ease = "cubic-bezier(0.32, 0.72, 0.15, 1)";
+  if (from && from.width > 0) {
+    const dx = from.left + from.width / 2 - (to.left + to.width / 2);
+    const dy = from.top + from.height / 2 - (to.top + to.height / 2);
+    const sc = from.width / to.width;
+    slot.animate(
+      [
+        { transform: `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) scale(${sc.toFixed(3)})` },
+        { transform: "translate(0px, 0px) scale(1)" },
+      ],
+      { duration: 620, easing: ease, fill: "both" }
+    );
+  } else {
+    // no live floater to fly from — a soft rise so it's never a hard pop
+    slot.animate(
+      [
+        { opacity: 0, transform: "translateY(-22px) scale(0.9)" },
+        { opacity: 1, transform: "translateY(0px) scale(1)" },
+      ],
+      { duration: 420, easing: "cubic-bezier(0.22, 0.7, 0.24, 1)", fill: "both" }
+    );
   }
 }
 
@@ -274,7 +324,6 @@ export default function ScoutApp() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [parsed, setParsed] = useState<ParsedQuery | null>(null);
   const [ai, setAi] = useState<AiSearchState | null>(null);
-  const [geo, setGeo] = useState<GeoState>({ status: "pending" });
   const [watchSaved, setWatchSaved] = useState(false); // "Watch this search" feedback
   const [typedHint, setTypedHint] = useState(""); // typewriter placeholder
   /** Rotating window into EXAMPLE_QUERIES — four shown at a time, cycling. */
@@ -303,25 +352,6 @@ export default function ScoutApp() {
   useEffect(() => {
     load();
   }, [load]);
-
-  // Ask the browser for location once — search center (100 mi default radius)
-  // unless the query names a place.
-  useEffect(() => {
-    if (!("geolocation" in navigator)) {
-      setGeo({ status: "denied" });
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) =>
-        setGeo({
-          status: "granted",
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-        }),
-      () => setGeo({ status: "denied" }),
-      { timeout: 12_000, maximumAge: 10 * 60_000 }
-    );
-  }, []);
 
   // Cycle the four visible example chips while the landing is idle + untouched.
   useEffect(() => {
@@ -552,10 +582,7 @@ export default function ScoutApp() {
         setWatchSaved(false); // a fresh search re-arms "Watch this search"
         setPhase("parsing");
       });
-      const location =
-        geo.status === "granted"
-          ? { latitude: geo.latitude, longitude: geo.longitude }
-          : null;
+      const location = null;
       const post = async (path: string, body: unknown) => {
         const res = await fetch(path, {
           method: "POST",
@@ -613,10 +640,13 @@ export default function ScoutApp() {
         const picks = shortlistRef.current;
         for (let i = 0; i < picks.length; i++) {
           if (seq !== searchSeq.current) return;
-          setArmedId(picks[i]?.id ?? null);
-          await sleep(60); // let the name commit before the snapshot
+          const pickId = picks[i]?.id ?? null;
+          setArmedId(pickId);
+          await sleep(60); // let the armed floater settle before we measure it
           if (seq !== searchSeq.current) return;
-          withViewTransition(() => setLaidCount(i + 1));
+          // FLIP just this one card out of the orbit into its fan slot — no
+          // full-page view transition, so the rest of the swirl never freezes.
+          flipPluck(pickId, () => setLaidCount(i + 1));
           await sleep(PLUCK_MS);
         }
         if (seq !== searchSeq.current) return;
@@ -657,7 +687,7 @@ export default function ScoutApp() {
         setPhase("idle");
       }
     },
-    [askInput, busy, geo]
+    [askInput, busy]
   );
 
   const onVoiceFinal = useCallback(
@@ -687,10 +717,7 @@ export default function ScoutApp() {
    * bell "collects" the watch — and the header bell flips to a checkmark. */
   const saveWatch = useCallback(async (fromEl?: HTMLElement | null) => {
     if (!activeQuery.trim() || !parsed || watchSaved) return;
-    const location =
-      geo.status === "granted"
-        ? { latitude: geo.latitude, longitude: geo.longitude }
-        : null;
+    const location = null;
     try {
       const res = await fetch("/api/watches", {
         method: "POST",
@@ -707,7 +734,7 @@ export default function ScoutApp() {
     } catch {
       /* offline — silently ignore; the button can be tapped again */
     }
-  }, [activeQuery, parsed, geo, watchSaved]);
+  }, [activeQuery, parsed, watchSaved]);
 
   const setStatus = useCallback(async (id: string, status: UserDogStatus | null) => {
     const res = await fetch(`/api/dogs/${encodeURIComponent(id)}/status`, {
@@ -1080,8 +1107,8 @@ export default function ScoutApp() {
                   // A hand-fan: rotation + dip grow from the center outward, but
                   // each card is nudged a little ASKEW (seeded jitter in angle,
                   // rise, and slot) so it reads as a real hand of cards, not a
-                  // machine-perfect arc. The entrance is the pluck morph itself
-                  // (shared vt name); scout-lay is only the no-VT fallback swoop.
+                  // machine-perfect arc. The entrance is the FLIP pluck itself
+                  // (flipPluck flies the card in from its orbit position).
                   const off = li - (laidDogs.length - 1) / 2;
                   const jRot = ((s % 100) / 100 - 0.5) * 6; // ±3° askew
                   const jY = ((s >> 5) % 100) / 100 * 8 - 4; // ±4px rise
@@ -1089,22 +1116,19 @@ export default function ScoutApp() {
                   return (
                     <div
                       key={d.id}
-                      className={HAS_VT ? "scout-fan-slot" : "scout-lay scout-fan-slot"}
+                      data-fan-card={d.id}
+                      className="scout-fan-slot"
                       style={
                         {
-                          // fallback swoop origin — seeded, high in the orbit
-                          "--lay-x": `${((s >> 2) % 180) - 90}px`,
-                          "--lay-y": `${-38 - ((s >> 5) % 16)}vh`,
-                          "--lay-from": `${(s % 40) - 20}deg`, // tumble
-                          "--lay-rot": "0deg", // resting pose lives on .scout-fan below
                           marginLeft: li > 0 ? "-14px" : undefined, // consistent overlap
                           zIndex: li,
                         } as React.CSSProperties
                       }
                     >
-                      {/* inner element carries the fan pose so scout-lay's own
-                          transform (the drop) doesn't clobber it — and re-sorts
-                          glide between slots via the transition on .scout-fan */}
+                      {/* inner element carries the fan pose (the FLIP pluck
+                          animates the OUTER slot, so the two transforms never
+                          clobber) — and re-sorts glide between slots via the
+                          transition on .scout-fan */}
                       <div
                         className="scout-fan"
                         style={

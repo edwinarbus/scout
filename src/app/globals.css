@@ -569,6 +569,20 @@ body {
   animation: scout-chip-in 0.62s cubic-bezier(0.2, 0.8, 0.3, 1) both;
 }
 
+/* WebKit-only seam fix. Inside the profile FLIP, the dossier lives in a
+   preserve-3d subtree projected through the overlay's `perspective`. Safari
+   rasterizes that 3D-projected subtree with a hairline seam down the
+   perspective/transform-origin center axis — imperceptible on the cream card,
+   but a glaring two-tone split across the one big solid-green Adopt button.
+   Giving the button its OWN flat 2D compositing layer (translateZ(0)) takes it
+   out of the parent's 3D-projected rasterization, so it's painted as a single
+   clean texture with no seam. Scoped to the flip — the plain info card has no
+   3D context and never seamed. (Chromium never showed the seam either; verify
+   on Safari/iOS.) */
+.scout-flip-back .scout-adopt {
+  transform: translateZ(0);
+}
+
 /* Adopt button — on hover a dog walks ACROSS the button, left to right, over
    the (darkened) label: each paw print lands in sequence (alternating feet,
    toes pointing right), the fresh tracks linger, and the oldest fade away.

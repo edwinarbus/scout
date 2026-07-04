@@ -223,20 +223,26 @@ export default function CardExpanded({
       // (a true mirror of the open), so the PHOTO just reveals instantly — no
       // fade there (a forced opacity 0→1 on the whole card made it momentarily
       // transparent the instant the modal unmounted, reading as a flash). But
-      // the shadow and the name/breed/stats plate are exclusive to the grid
-      // card — the modal's front face is photo-only — so revealing them
-      // instantly alongside the photo read as an abrupt pop. Committing them
-      // hidden for one frame, THEN letting them go (their CSS transition takes
-      // it from there), fades just those two in without re-touching the photo.
+      // the shadow, the printed hairline border (.scout-card::before) and the
+      // name/breed/stats plate are exclusive to the grid card — the modal's
+      // front face is photo-only — so revealing them instantly alongside the
+      // photo read as an abrupt pop. We commit them hidden, reveal the card,
+      // then release them on the NEXT frame so their CSS transitions fade them
+      // in over the already-present photo. Releasing in the SAME frame (the old
+      // offsetWidth trick) coalesced to no net style change, so the transition
+      // never fired and they popped — which is exactly the flash. The reveal
+      // and onClose stay synchronous, so a backgrounded tab can't hang the
+      // modal open; only the cosmetic fade-in waits on rAF.
       if (o) {
         const cardEl = o.querySelector<HTMLElement>(".scout-card");
         const plate = o.querySelector<HTMLElement>(".scout-nameplate");
         cardEl?.classList.add("scout-card-reveal-hidden");
         plate?.classList.add("scout-nameplate-hidden");
         o.style.visibility = "";
-        void o.offsetWidth; // commit the hidden shadow/plate as the first painted frame
-        cardEl?.classList.remove("scout-card-reveal-hidden");
-        plate?.classList.remove("scout-nameplate-hidden");
+        requestAnimationFrame(() => {
+          cardEl?.classList.remove("scout-card-reveal-hidden");
+          plate?.classList.remove("scout-nameplate-hidden");
+        });
       }
       onClose();
     };
