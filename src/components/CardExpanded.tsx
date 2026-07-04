@@ -23,6 +23,16 @@ const EASE = "cubic-bezier(0.42, 0, 0.24, 1)"; // controlled pick-up-and-place
  *  timed to it. */
 const FLIP_MS = 700;
 
+/** The flip's easing — fastest right at the edge-on apex, so lift, travel,
+ *  flip, and growth read as one continuous motion that lands soft. The
+ *  front-face fade below MUST use this exact curve too: its hard cut is
+ *  keyed to keyframe offset 0.5 (the apex), and that offset only lands at
+ *  the same WALL-CLOCK moment as the card's own apex if both animations are
+ *  eased identically. Mismatched easing (this curve vs the fade's previous
+ *  default linear) let the front face stay opaque past the point the card
+ *  had already turned edge-on, bleeding it through the dossier mid-flip. */
+const FLIP_EASING = "cubic-bezier(0.5, 0.05, 0.15, 1)";
+
 /** The transitional front face's opacity ACROSS the 700ms flip: shown for the
  *  first half (card 0→90°, the photo you clicked turning), then gone for the
  *  second half (90→180°, the dossier now facing you). The switch is a hard cut
@@ -196,13 +206,15 @@ export default function CardExpanded({
             { transform: p.apex, offset: 0.5 },
             { transform: p.rest },
           ],
-          { duration: FLIP_MS, easing: "cubic-bezier(0.5, 0.05, 0.15, 1)", fill: "both" }
+          { duration: FLIP_MS, easing: FLIP_EASING, fill: "both" }
         );
         // Fade the transitional front face out exactly at the edge-on apex, in
         // lockstep with the flip — so it's gone the instant the dossier starts
         // to face us and never bleeds through the underside mid-flip. (See
         // FLIP_FACE_FADE — this replaces the unreliable backface-visibility.)
-        frontRef.current?.animate(FLIP_FACE_FADE, { duration: FLIP_MS, fill: "both" });
+        // Must share FLIP_EASING with the transform above: offset 0.5 in each
+        // only coincides in wall-clock time if both are eased identically.
+        frontRef.current?.animate(FLIP_FACE_FADE, { duration: FLIP_MS, easing: FLIP_EASING, fill: "both" });
       }
       adoptRef.current?.focus({ preventScroll: true });
     }
@@ -312,7 +324,7 @@ export default function CardExpanded({
       ],
       {
         duration: FLIP_MS,
-        easing: "cubic-bezier(0.5, 0.05, 0.15, 1)",
+        easing: FLIP_EASING,
         fill: "both",
         direction: "reverse",
       }
@@ -320,9 +332,13 @@ export default function CardExpanded({
     // Mirror the front-face fade in reverse: it stays hidden while the dossier
     // faces us (180→90°), then fades back in at the apex to lead the card home
     // (90→0°) — so the front is never bleeding through the underside mid-flip,
-    // yet the card is never invisible on its way down.
+    // yet the card is never invisible on its way down. Same FLIP_EASING as
+    // above, so the fade's offset-0.5 cut lands at the same wall-clock moment
+    // as the transform's apex — see the FLIP_EASING comment for why that
+    // matters.
     frontRef.current?.animate(FLIP_FACE_FADE, {
       duration: FLIP_MS,
+      easing: FLIP_EASING,
       fill: "both",
       direction: "reverse",
     });
