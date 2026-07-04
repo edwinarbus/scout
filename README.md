@@ -1,9 +1,9 @@
 # Scout
 
-A personal, non-commercial California dog-adoption matcher. It scrapes real listings from a
-dozen-plus CA shelter and rescue systems onto one schema, then layers Claude on top of the raw
-data — natural-language search, photo understanding, and a nightly Managed Agent that curates
-and texts you new matches.
+A personal, non-commercial California dog-adoption matcher. It scrapes real listings from
+20-plus CA shelter and rescue systems onto one schema, then layers Claude on top of the raw
+data — natural-language search, photo understanding, and a nightly Managed Agents pipeline
+that finds, judges, and texts you new matches, with no server of your own anywhere in the loop.
 
 The original shelter listing is always the source of truth. Nothing here republishes a
 listing as its own, contacts a shelter automatically, or claims a dog is unavailable without
@@ -27,10 +27,12 @@ coat length/texture ("scruffy," "fluffy"), apparent size, colors, a one-line des
 photo-quality flag — so search can match what a dog *looks like*, not just its shelter-listed
 fields. Cached by photo hash; a re-run only touches dogs whose photo actually changed.
 
-**The Scout Watch Curator — a managed agent (Claude Managed Agents).** Save a search as a
-standing watch and every night Scout pulls fresh listings across every source, re-evaluates
-every watch, and hands genuinely new matches to a persisted, versioned Managed Agent that
-judges which are actually worth a text and writes the alert copy — grounded only in the facts
+**A nightly overnight scout — fully agentic, no server of your own.** Save a search as a
+standing watch, and Scout runs itself every night at 2:15am Pacific: a scheduled Claude
+Managed Agents deployment wakes the pipeline on a cron, entirely on Anthropic's
+infrastructure — no cron machine, container, or GitHub Actions runner required. The pipeline
+re-scrapes every source, re-evaluates every watch, and hands genuinely new matches to Claude
+to judge which are actually worth a text and write the alert copy, grounded only in the facts
 it's given, never inventing a trait. With Twilio configured, each curated match is texted via
 the Twilio REST API; a per-watch ledger means you're never re-pinged about a dog you've seen.
 
@@ -61,13 +63,14 @@ Claude shows up in three shapes across the app, each picked for what the task ne
 |---|---|---|
 | Natural-language search | Sonnet 5 | `messages.create` with **Structured Outputs** (`output_config.format: json_schema`) for the parse stage; the same pattern repeated across the re-rank stage's parallel chunked calls (`Promise.allSettled`, 5-dog chunks — output tokens generate serially *within* a call, so 8 small concurrent calls finish in the time of one); **prompt caching** (`cache_control: ephemeral`) on the shared system prompt across chunks |
 | Photo vision | Haiku 4.5 | Multimodal `messages.create` — one downscaled (≤512px) base64 JPEG `image` content block per dog — with Structured Outputs, cached by photo hash so unchanged photos are never re-sent |
-| Scout Watch Curator | Opus 4.8 | **Managed Agents** — a persisted `Agent` (`beta.agents.create` + `beta.environments.create`), created once and reused, run per watch-check via `beta.sessions.create` + streamed `beta.sessions.events`; the `agent_toolset_20260401` toolset is attached for future per-dog web research |
+| Nightly overnight scout | Sonnet 5 | **Managed Agents**, end to end — a scheduled deployment (`beta.deployments.create`, cron) wakes the pipeline via a minimal, `bash`-only trigger agent; a second persisted agent (`beta.agents.create` + `beta.sessions.create`, with the `agent_toolset_20260401` toolset attached for future per-dog web research) judges which new matches are worth a text and writes the copy. Both are provisioned once by a setup script and referenced by pinned ids from then on — never re-created per request |
 
 Structured Outputs means a malformed parse response can't happen structurally; the re-rank
 stage's chunking means one failed chunk only drops *its* dogs back to deterministic order,
 never the whole search; and the curator's failure path (no beta access, a bad response) falls
-back cleanly to the deterministic alert ranking — a rough night for the API is never a rough
-night for the alert.
+back cleanly to the deterministic alert ranking, while a failed nightly trigger simply waits
+for the next night's cron rather than retrying forever. A rough night for the API is never a
+rough night for the alert.
 
 ## Quick start
 
@@ -88,33 +91,33 @@ npm run scout:overnight      # ingest + watch check + Managed Agent curation + S
 ```
 
 In production, `ANTHROPIC_API_KEY` is set as a Vercel environment variable, so search, vision,
-and the overnight curator are always on.
+and the overnight scout are always on.
 
-In production, the overnight run is triggered nightly (2:15am Pacific) by a **Claude Managed
-Agents scheduled deployment** — a tiny hosted agent whose only job is to `curl` the protected
-`POST /api/cron/overnight` route on a cron, entirely on Anthropic's infrastructure. No server,
-container, or GitHub Actions runner to keep alive, and no secrets duplicated anywhere: the route
-runs *on this Vercel deployment*, where `ANTHROPIC_API_KEY` / `TURSO_*` / `SCOUT_TWILIO_*` already
-live — the agent only ever holds one new secret, `CRON_SECRET`, which just gates that one route.
-Set it up once with:
+The nightly run itself is a real, already-provisioned pair of **Claude Managed Agents** — one
+that wakes the pipeline on a cron, one that judges matches — with no cron machine of your own
+to maintain. Set both up once:
 
 ```bash
 vercel env add CRON_SECRET production   # pick any random value
-npm run scout:setup-overnight-agent     # same CRON_SECRET in your shell env
+npm run scout:setup-overnight-agent     # provisions the nightly trigger
+npm run scout:setup-watch-curator       # provisions the match-judging agent
 ```
 
-See `scripts/setup-overnight-agent.ts` for the exact resources it creates (environment, agent,
-vault, deployment) and how to re-run it idempotently.
+Both scripts are idempotent — re-run either any time (e.g. after changing a model) with the
+ids it printed the first time, and it updates the existing agent in place instead of creating
+a duplicate. See `scripts/setup-overnight-agent.ts` and `scripts/setup-watch-curator.ts` for
+the exact resources each creates.
 
 ## Environment variables
 
 | Variable | Required for | Notes |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | Search, vision, overnight curator | Set as a Vercel env var in production |
+| `ANTHROPIC_API_KEY` | Search, vision, overnight scout | Set as a Vercel env var in production |
 | `SCOUT_SEARCH_MODEL` | — | Override the search model (default `claude-sonnet-5`) |
 | `SCOUT_VISION_MODEL` | — | Override the vision model (default `claude-haiku-4-5`) |
-| `SCOUT_MANAGED_AGENT_MODEL` | — | Override the curator model (default `claude-opus-4-8`) |
+| `SCOUT_MANAGED_AGENT_MODEL` | — | Override the curator's model (default `claude-sonnet-5`) |
 | `SCOUT_MANAGED_AGENT=0` | — | Opt out of the curator specifically; search/vision unaffected |
+| `SCOUT_CURATOR_AGENT_ID`, `SCOUT_CURATOR_ENV_ID` | Overnight scout (production) | Pins the curator's Managed Agent so it never tries to self-provision against a read-only filesystem — set once via `scout:setup-watch-curator` |
 | `SCOUT_TWILIO_ACCOUNT_SID`, `SCOUT_TWILIO_AUTH_TOKEN`, `SCOUT_TWILIO_FROM` | SMS alerts | Twilio credentials — each is its own full env var name; don't abbreviate |
 | `SCOUT_SMS_TO` | SMS alerts | Destination phone number |
 | `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | Deployed use | Provisioned via the Vercel Marketplace Turso integration; no Turso credential falls back to a local SQLite file |
@@ -129,11 +132,13 @@ src/
   ingest/       runner (daily + backfill, dedupe, gating), enrich (vision batch),
                 overnight (watch eval + curation + SMS), confidence scoring
   lib/          anthropic (Claude client), aiSearch (parse + re-rank), managedAgent,
-                match, normalize, lifecycle, canonical, geo, photo, sms, dogView
+                watchEval, match, normalize, lifecycle, canonical, geo, photo, sms,
+                dogView, …
   sources/      registry.ts — CA source configs, politeness, permissions, tenant configs
   db/           Drizzle schema + SQL migrations (libSQL/Turso, local-file fallback)
   app/          matcher + map UI (/), health dashboard (/sources), API routes
-scripts/        CLI entry points (seed, verify, backfill, ingest, enrich, overnight, …)
+scripts/        CLI entry points (seed, verify, backfill, ingest, enrich, overnight,
+                setup-overnight-agent, setup-watch-curator, run-deployment, …)
 ```
 
 ## Scope & constraints
@@ -144,4 +149,4 @@ that 403 non-browser clients use browser-profile headers as a recorded operator 
 Length-of-stay and some structured fields are only as good as what each shelter publishes —
 missing data stays null, never guessed. Cross-source duplicate flags are heuristic and never
 auto-merge. Claude's photo reads and query parsing are always shown as labeled impressions,
-never verified facts — and Scout never sends anything to a shelter on your behalf.
+never verified facts.
