@@ -1312,8 +1312,15 @@ export default function ScoutApp() {
                       className="h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl"
                     />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[16.5px] font-bold text-ink-900">
-                        {d.name ?? "Unnamed"}
+                      <span className="flex items-center gap-1.5">
+                        <span className="min-w-0 truncate text-[16.5px] font-bold text-ink-900">
+                          {d.name ?? "Unnamed"}
+                        </span>
+                        {d.isFromLatestRun && (
+                          <span className="shrink-0 rounded-full bg-sky-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-sky-600">
+                            New
+                          </span>
+                        )}
                       </span>
                       {breed && (
                         <span className="block truncate text-[13.5px] font-medium capitalize text-ink-600">

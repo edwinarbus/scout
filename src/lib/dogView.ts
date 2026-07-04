@@ -91,6 +91,10 @@ export interface DogView {
   lastSeenAt: string;
   missingSince: string | null;
   isNew: boolean;
+  /** True for dogs first seen in the most recent ingest run — a distinct
+   *  signal from isNew (which tracks the SHELTER's own intake date). See
+   *  LATEST_RUN_WINDOW_MS below for how "the most recent run" is defined. */
+  isFromLatestRun: boolean;
   goodWithDogs: boolean | null;
   goodWithCats: boolean | null;
   goodWithKids: boolean | null;
@@ -149,6 +153,17 @@ export interface DogViewAi {
  * MM/DD/YYYY from Oakland), so a raw string compare would be wrong. */
 const NEW_INTAKE_CUTOFF = parseLooseDate("2026-07-02")!.getTime();
 
+/**
+ * How close a listing's firstSeenAt must be to the newest firstSeenAt in the
+ * DB to count as "from the latest run". A single ingestAllEnabled() call
+ * stamps every new listing across every source with the SAME shared `now`
+ * (see runOvernight → ingestAllEnabled), so in the common case this is an
+ * exact match; the window only exists to also cover a manual multi-source
+ * run where each source computes its own `new Date()` a little apart. Wide
+ * enough for a slow crawl, far narrower than the >1 day gap to the run before it.
+ */
+const LATEST_RUN_WINDOW_MS = 3 * 60 * 60 * 1000;
+
 /** Whole days between an ISO date (yyyy-mm-dd) and now; null if no/invalid date. */
 function daysSince(rawDate: string | null, now: Date): number | null {
   const d = parseLooseDate(rawDate); // handles ISO and MM/DD/YYYY
@@ -185,6 +200,10 @@ export async function buildDogViews(db: ScoutDb, now: Date = new Date()): Promis
   for (const r of runs) {
     if (!lastRunBySource.has(r.sourceId)) lastRunBySource.set(r.sourceId, r);
   }
+  const latestFirstSeenMs = listings.reduce(
+    (max, l) => Math.max(max, l.firstSeenAt.getTime()),
+    -Infinity
+  );
 
   // Collapse canonical groups → one display listing each.
   const byCanonical = new Map<string, DogListingRow[]>();
@@ -287,6 +306,7 @@ export async function buildDogViews(db: ScoutDb, now: Date = new Date()): Promis
       lastSeenAt: display.lastSeenAt.toISOString(),
       missingSince: display.missingSince?.toISOString() ?? null,
       isNew: (parseLooseDate(display.intakeDate)?.getTime() ?? -Infinity) >= NEW_INTAKE_CUTOFF,
+      isFromLatestRun: display.firstSeenAt.getTime() >= latestFirstSeenMs - LATEST_RUN_WINDOW_MS,
       goodWithDogs: display.goodWithDogs,
       goodWithCats: display.goodWithCats,
       goodWithKids: display.goodWithKids,
