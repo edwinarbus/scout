@@ -1,5 +1,5 @@
 import { createStructured, SEARCH_MODEL, type JsonSchema } from "./anthropic";
-import { cityCoords, countyCoords } from "./geo";
+import { cityCoords, countyCoords, haversineMiles } from "./geo";
 import { matchListing, type SearchCriteria } from "./match";
 import type { DogView } from "./dogView";
 
@@ -263,6 +263,11 @@ export function applyParsedQuery(
   const traits = parsed.visualTraits.map((t) => t.toLowerCase().trim()).filter(Boolean);
   const keywords = parsed.keywords.map((k) => k.toLowerCase().trim()).filter(Boolean);
 
+  // For the tie-break below: how far each dog is from the requested place (when
+  // the query is location-scoped). Captured in the same pass we score.
+  const center = criteria.center ?? null;
+  const distanceMi = new Map<string, number>();
+
   const results: SearchMatch[] = [];
   for (const dog of dogs) {
     const m = matchListing(
@@ -327,9 +332,39 @@ export function applyParsedQuery(
     if (dog.statusNormalized === "available") score += 0.5;
 
     results.push({ dog, score, reasons, unknowns: m.unknowns });
+    if (center && dog.latitude != null && dog.longitude != null) {
+      distanceMi.set(
+        dog.id,
+        haversineMiles(center.latitude, center.longitude, dog.latitude, dog.longitude)
+      );
+    }
   }
 
-  results.sort((a, b) => b.score - a.score || a.dog.name?.localeCompare(b.dog.name ?? "") || 0);
+  // Rank by fit score, then break ties with signals that predict where Claude's
+  // re-rank will land a dog — so the top-picks fan (built from THIS order, ~13s
+  // before the re-rank finishes) mostly matches the final grid's top rows:
+  //   1. score        — deterministic fit (unchanged primary)
+  //   2. proximity    — nearer the requested place first; the re-rank rewards
+  //                     "near X", so close dogs are far likelier to stay on top
+  //   3. richness     — an AI photo read + a bio give the re-rank more to score
+  //                     on, and fuller listings tend to rank higher
+  //   4. name         — stable final tiebreak (the old sole tiebreak, which
+  //                     made the fan an alphabetical slice of the tied tier —
+  //                     nearly uncorrelated with the reranked grid)
+  // Rough by design: the exact order only exists after the re-rank, but this
+  // gets the fan to overlap the grid's top rows well over half the time.
+  const richness = (d: DogView) => (aiByDog.has(d.id) ? 1 : 0) + (d.biographyRaw ? 1 : 0);
+  results.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    if (center) {
+      const da = distanceMi.get(a.dog.id) ?? Infinity;
+      const db = distanceMi.get(b.dog.id) ?? Infinity;
+      if (da !== db) return da - db;
+    }
+    const rDiff = richness(b.dog) - richness(a.dog);
+    if (rDiff !== 0) return rDiff;
+    return a.dog.name?.localeCompare(b.dog.name ?? "") || 0;
+  });
   return results;
 }
 
