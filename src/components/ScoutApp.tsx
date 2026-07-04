@@ -64,10 +64,11 @@ function PawMark({ className = "" }: { className?: string }) {
 const SIFT_POOL_SIZE = 24;
 /** How many candidates get drawn from the swirl and laid on the table. */
 const LAY_COUNT = 8;
-/** Shortlist deal choreography. Each pluck is its own view transition — the
- *  orbiting card morphs into its fan slot — so the pace is OUR clock (one
- *  pluck per PLUCK_MS), not a CSS stagger. */
-const PLUCK_MS = 820;
+/** Shortlist deal choreography. Each pluck FLIPs the orbiting card into its
+ *  fan slot (see flipPluck) on OUR clock — one pluck per PLUCK_MS — not a CSS
+ *  stagger. Slightly longer than the 900ms flight so a card settles into the
+ *  hand just before the next one launches. */
+const PLUCK_MS = 950;
 /** After the screen lands, hold on the swirl long enough for the top picks to
  *  visibly board the orbit before we start pulling them out ("wait for the
  *  right cards" — priority spawns ≈ 8 × 200ms + entry flight). */
@@ -154,7 +155,11 @@ function flipPluck(id: string | null, commit: () => void) {
   if (!slot) return;
   const to = slot.getBoundingClientRect();
   if (to.width === 0) return;
-  const ease = "cubic-bezier(0.32, 0.72, 0.15, 1)";
+  // A gentle easeOutCubic (not the old front-loaded curve, which shot the card
+  // most of the way there in the first third and then eased — that abruptness
+  // read as a snap) over a longer flight, so the card GLIDES out of the orbit
+  // and settles softly into its slot.
+  const ease = "cubic-bezier(0.215, 0.61, 0.355, 1)";
   if (from && from.width > 0) {
     const dx = from.left + from.width / 2 - (to.left + to.width / 2);
     const dy = from.top + from.height / 2 - (to.top + to.height / 2);
@@ -164,7 +169,7 @@ function flipPluck(id: string | null, commit: () => void) {
         { transform: `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) scale(${sc.toFixed(3)})` },
         { transform: "translate(0px, 0px) scale(1)" },
       ],
-      { duration: 620, easing: ease, fill: "both" }
+      { duration: 900, easing: ease, fill: "both" }
     );
   } else {
     // no live floater to fly from — a soft rise so it's never a hard pop
@@ -173,7 +178,7 @@ function flipPluck(id: string | null, commit: () => void) {
         { opacity: 0, transform: "translateY(-22px) scale(0.9)" },
         { opacity: 1, transform: "translateY(0px) scale(1)" },
       ],
-      { duration: 420, easing: "cubic-bezier(0.22, 0.7, 0.24, 1)", fill: "both" }
+      { duration: 620, easing: ease, fill: "both" }
     );
   }
 }
