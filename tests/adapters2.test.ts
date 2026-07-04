@@ -178,7 +178,10 @@ describe("ShelterLuv adapter (Rocket Dog family, recorded feed fixture)", () => 
     const a = payload.animals.find((x) => x.uniqueId === "RCKT-A-6052")!;
     const mapped = mapShelterluvAnimal(a, "https://new.shelterluv.com");
     expect(mapped.sourceAnimalId).toBe("RCKT-A-6052"); // stable, org-scoped key
-    expect(mapped.originalUrl).toBe("https://new.shelterluv.com/embed/animal/206030899");
+    // originalUrl is the adopt/apply link, not the embed listing page.
+    expect(mapped.originalUrl).toBe(
+      "https://new.shelterluv.com/matchme/adopt/RCKT-A-6052?nid=206030899&_csrfToken="
+    );
     expect(mapped.name).toBe("Atlantis");
     expect(mapped.breedRaw).toContain("Mixed Breed");
     expect(mapped.colorRaw).toBe("Brindle / Brown");

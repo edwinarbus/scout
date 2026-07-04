@@ -89,6 +89,23 @@ function cleanBreedName(b: string | null | undefined): string | null {
   return squish(b?.replace(/\s*\((?:x-?small|small|medium|large|x-?large|giant|toy)\)/i, ""));
 }
 
+/** The server-rendered per-animal page — has no adopt/apply action of its own,
+ *  but is where `kennel_description` (the bio) lives, so the detail-page pass
+ *  still needs it even though the UI's Adopt button no longer points here. */
+function embedUrl(a: ShelterluvAnimal, domain: string): string {
+  return a.public_url ?? `${domain}/embed/animal/${a.nid}`;
+}
+
+/** ShelterLuv's actual adoption-application flow — distinct from the embed
+ *  page above, which just redisplays the listing. Keyed by the friendly
+ *  `uniqueId` (e.g. "RCKT-A-7798"), with the numeric `nid` as a query param;
+ *  `_csrfToken` is left blank, matching the real link ShelterLuv serves. */
+function adoptUrl(a: ShelterluvAnimal, domain: string): string {
+  const uniqueId = squish(a.uniqueId);
+  if (!uniqueId) return embedUrl(a, domain); // no friendly id to build the real link — fall back
+  return `${domain}/matchme/adopt/${encodeURIComponent(uniqueId)}?nid=${a.nid}&_csrfToken=`;
+}
+
 /** Un-escape ONE layer of HTML-attribute encoding — recovers the raw JSON text
  *  the server wrapped in `:animal="…"`. Order matters: decode &amp; LAST, so a
  *  double-escaped entity already inside the bio text (e.g. the literal
@@ -136,11 +153,10 @@ export function mapShelterluvAnimal(a: ShelterluvAnimal, domain: string): Extrac
   const ageRaw = dob ? `DOB ${dob}` : squish(a.age_group?.name);
   const inFoster = /foster/i.test(a.location ?? "");
   const photoUrls = orderedPhotoUrls(a.photos);
-  const originalUrl = a.public_url ?? `${domain}/embed/animal/${a.nid}`;
 
   return {
     sourceAnimalId: squish(a.uniqueId) ?? String(a.nid),
-    originalUrl,
+    originalUrl: adoptUrl(a, domain),
     name: squish(a.name),
     species: squish(a.species) ?? "Dog",
     breedRaw: breeds || null,
@@ -194,6 +210,10 @@ export const shelterluvAdapter: SourceAdapter = {
 
     const seen = new Set<string>();
     const dogs: ExtractedDog[] = [];
+    // originalUrl is now the adopt/apply link (see adoptUrl) — the detail-page
+    // pass below needs the DIFFERENT embed page the bio actually lives on, so
+    // that's tracked separately here, keyed by the same sourceAnimalId.
+    const embedUrlByAnimalId = new Map<string, string>();
     let nonDog = 0;
     for (const a of all) {
       if (!a || a.nid == null) continue;
@@ -208,6 +228,7 @@ export const shelterluvAdapter: SourceAdapter = {
       }
       seen.add(key);
       dogs.push(mapShelterluvAnimal(a, domain));
+      embedUrlByAnimalId.set(key, embedUrl(a, domain));
     }
     ctx.log(`feed: ${all.length} animals total, ${dogs.length} dogs (${nonDog} non-dog filtered)`);
 
@@ -232,7 +253,7 @@ export const shelterluvAdapter: SourceAdapter = {
       }
       try {
         detailsAttempted++;
-        const dres = await ctx.fetch(dog.originalUrl);
+        const dres = await ctx.fetch(embedUrlByAnimalId.get(dog.sourceAnimalId) ?? dog.originalUrl);
         detailPagesVisited++;
         if (dres.ok) {
           const { kennelDescription } = parseAnimalDetailPage(dres.text);
