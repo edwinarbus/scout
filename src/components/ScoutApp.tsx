@@ -149,8 +149,35 @@ function flipPluck(id: string | null, commit: () => void) {
     id && !reduce && typeof document !== "undefined"
       ? document.querySelector(`[data-sift-card="${cssEsc(id)}"]`)?.getBoundingClientRect()
       : null;
+  // Snapshot the cards ALREADY in the hand before we add the next one — the row
+  // is justify-center, so adding a card re-centers it and shifts every existing
+  // card left. That flex re-layout is instant (not transitionable), which read
+  // as the row snapping. We FLIP each existing card from its old spot to its
+  // new one so the hand smoothly spreads to make room.
+  const prev =
+    reduce || typeof document === "undefined"
+      ? []
+      : Array.from(document.querySelectorAll<HTMLElement>("[data-fan-card]")).map((el) => ({
+          el,
+          rect: el.getBoundingClientRect(),
+        }));
   flushSync(commit); // fan card now mounted; the orbiting floater is gone
   if (!id || reduce) return;
+  const ease = "cubic-bezier(0.215, 0.61, 0.355, 1)";
+  // Re-center glide for the cards that were already in the hand.
+  for (const { el, rect } of prev) {
+    const now = el.getBoundingClientRect();
+    const dx = rect.left - now.left;
+    const dy = rect.top - now.top;
+    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) continue;
+    el.animate(
+      [
+        { transform: `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)` },
+        { transform: "translate(0px, 0px)" },
+      ],
+      { duration: 520, easing: ease, fill: "both" }
+    );
+  }
   const slot = document.querySelector<HTMLElement>(`[data-fan-card="${cssEsc(id)}"]`);
   if (!slot) return;
   const to = slot.getBoundingClientRect();
@@ -159,7 +186,6 @@ function flipPluck(id: string | null, commit: () => void) {
   // most of the way there in the first third and then eased — that abruptness
   // read as a snap) over a longer flight, so the card GLIDES out of the orbit
   // and settles softly into its slot.
-  const ease = "cubic-bezier(0.215, 0.61, 0.355, 1)";
   if (from && from.width > 0) {
     const dx = from.left + from.width / 2 - (to.left + to.width / 2);
     const dy = from.top + from.height / 2 - (to.top + to.height / 2);

@@ -19,6 +19,26 @@ import { isSaved, toggleSaved as toggleSavedStore } from "@/lib/savedStore";
 
 const EASE = "cubic-bezier(0.42, 0, 0.24, 1)"; // controlled pick-up-and-place
 
+/** How long the flip (and its reverse) takes — the front-face fade below is
+ *  timed to it. */
+const FLIP_MS = 700;
+
+/** The transitional front face's opacity ACROSS the 700ms flip: shown for the
+ *  first half (card 0→90°, the photo you clicked turning), then gone for the
+ *  second half (90→180°, the dossier now facing you). The switch is a hard cut
+ *  right at the edge-on apex (offset 0.5), where the card has zero visible
+ *  width — so it's invisible. This replaces backface-visibility, which Safari
+ *  doesn't honor on this preserve-3d flip: the turned-away front kept getting
+ *  painted and bled through the dossier's underside DURING the flip (the two-
+ *  tone Adopt button). Played forward for open, reversed for close so the front
+ *  fades back in only once the card turns past the apex on its way home. */
+const FLIP_FACE_FADE: Keyframe[] = [
+  { opacity: 1, offset: 0 },
+  { opacity: 1, offset: 0.49 },
+  { opacity: 0, offset: 0.5 },
+  { opacity: 0, offset: 1 },
+];
+
 interface Geo {
   dx: number;
   dy: number;
@@ -167,8 +187,8 @@ export default function CardExpanded({
         el.style.transform = "rotateY(180deg) scale(1)";
         el.style.opacity = "1";
         // This branch starts already turned to the back (rotateY 180), so the
-        // front face is never shown — hide it outright (see hideFront note).
-        if (frontRef.current) frontRef.current.style.visibility = "hidden";
+        // front face is never shown — hide it outright (see FLIP_FACE_FADE).
+        if (frontRef.current) frontRef.current.style.opacity = "0";
       } else {
         const s = originRect.height / final.height;
         const dx = originRect.left + originRect.width / 2 - (final.left + final.width / 2);
@@ -186,31 +206,19 @@ export default function CardExpanded({
         // at the apex (the "flip halfway, pause, then grow" jank). A single
         // whole-animation curve is FASTEST right at the edge-on apex, so lift,
         // travel, flip, and growth read as one continuous motion that lands soft.
-        const open = el.animate(
+        el.animate(
           [
             { transform: p.origin },
             { transform: p.apex, offset: 0.5 },
             { transform: p.rest },
           ],
-          { duration: 700, easing: "cubic-bezier(0.5, 0.05, 0.15, 1)", fill: "both" }
+          { duration: FLIP_MS, easing: "cubic-bezier(0.5, 0.05, 0.15, 1)", fill: "both" }
         );
-        // hideFront: once the card has turned all the way to the dossier, hide
-        // the transitional front face outright. Safari's backface-visibility is
-        // unreliable on this preserve-3d flip, so the turned-away front (a
-        // narrow photo-only card centered in the wide flip box) bleeds faintly
-        // through the dossier — its right edge landing as a two-tone vertical
-        // seam across the big solid-green Adopt button. visibility:hidden is
-        // deterministic where the CSS backface hint isn't.
-        open.addEventListener(
-          "finish",
-          () => {
-            // guard: if a close already started, it has restored the front for
-            // the reverse flip — don't re-hide it out from under that.
-            if (!closingRef.current && frontRef.current)
-              frontRef.current.style.visibility = "hidden";
-          },
-          { once: true }
-        );
+        // Fade the transitional front face out exactly at the edge-on apex, in
+        // lockstep with the flip — so it's gone the instant the dossier starts
+        // to face us and never bleeds through the underside mid-flip. (See
+        // FLIP_FACE_FADE — this replaces the unreliable backface-visibility.)
+        frontRef.current?.animate(FLIP_FACE_FADE, { duration: FLIP_MS, fill: "both" });
       }
       adoptRef.current?.focus({ preventScroll: true });
     }
@@ -237,9 +245,6 @@ export default function CardExpanded({
     if (closingRef.current) return;
     closingRef.current = true;
     const el = cardRef.current;
-    // The reverse flip turns the card back to front-up, so the front face has
-    // to be visible again from ~90°→0° (open hid it — see hideFront above).
-    if (frontRef.current) frontRef.current.style.visibility = "";
     // Remeasure the grid slot NOW: the modal's backdrop has un-hovered the card,
     // so it's dropped back to its true resting spot (no hover lift/scale/tilt).
     // Replaying to the open-time `geo` (captured mid-hover) would land the card
@@ -312,13 +317,22 @@ export default function CardExpanded({
         { transform: p.rest },
       ],
       {
-        duration: 700,
+        duration: FLIP_MS,
         easing: "cubic-bezier(0.5, 0.05, 0.15, 1)",
         fill: "both",
         direction: "reverse",
       }
     ).addEventListener("finish", finish, { once: true });
-    window.setTimeout(finish, 840); // safety net if the finish event is missed
+    // Mirror the front-face fade in reverse: it stays hidden while the dossier
+    // faces us (180→90°), then fades back in at the apex to lead the card home
+    // (90→0°) — so the front is never bleeding through the underside mid-flip,
+    // yet the card is never invisible on its way down.
+    frontRef.current?.animate(FLIP_FACE_FADE, {
+      duration: FLIP_MS,
+      fill: "both",
+      direction: "reverse",
+    });
+    window.setTimeout(finish, FLIP_MS + 140); // safety net if the finish event is missed
   }, [onClose]);
 
   useEffect(() => {
