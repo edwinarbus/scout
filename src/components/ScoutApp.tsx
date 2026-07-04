@@ -107,10 +107,12 @@ interface AiSearchState {
   results: AiResult[];
 }
 
-/** Re-sort/land with the View Transitions API when available (smooth morph).
- * Starting a new transition auto-skips one already in flight, which rejects
- * the skipped transition's promises with InvalidStateError — expected here
- * (fast searches, Clear mid-morph), so those rejections are swallowed. */
+/** Hand the top-picks fan off into the scored grid. On desktop this is the
+ * View Transitions API (smooth morph); starting a new transition auto-skips one
+ * already in flight, which rejects the skipped transition's promises with
+ * InvalidStateError — expected here (fast searches, Clear mid-morph), so those
+ * rejections are swallowed. On mobile (HAS_VT off — WebKit's full-page VT is
+ * unreliable on this page) we FLIP the hand-off manually instead. */
 function withViewTransition(update: () => void) {
   const d = document as Document & {
     startViewTransition?: (cb: () => void) => { ready: Promise<void>; finished: Promise<void> };
@@ -120,8 +122,69 @@ function withViewTransition(update: () => void) {
     vt.ready.catch(() => {});
     vt.finished.catch(() => {});
   } else {
-    update();
+    flipHandoff(update);
   }
+}
+
+/**
+ * Mobile fan→grid hand-off WITHOUT a view transition. Same FLIP idea as
+ * flipPluck, but for the whole hand at once: measure each fan card's live
+ * screen rect, commit the grid, then fly each matching grid card from its fan
+ * position into its slot (growing from the ~104px fan card to the full grid
+ * card). This is what makes the top picks visibly carry over on mobile, where
+ * the desktop VT morph is off — without it those cards just hard-popped, since
+ * the top-12 slots deliberately skip DogCard's own entrance (they rely on this
+ * hand-off to animate them). Top slots with no fan origin softly rise in so
+ * nothing pops; cards past the fold keep their own DogCard entrance.
+ */
+function flipHandoff(commit: () => void) {
+  const reduce =
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  if (reduce || typeof document === "undefined") {
+    flushSync(commit);
+    return;
+  }
+  const fromById = new Map<string, DOMRect>();
+  document.querySelectorAll<HTMLElement>("[data-fan-card]").forEach((el) => {
+    const id = el.getAttribute("data-fan-card");
+    if (id) fromById.set(id, el.getBoundingClientRect());
+  });
+
+  flushSync(commit); // grid mounted, fan gone
+
+  const ease = "cubic-bezier(0.215, 0.61, 0.355, 1)";
+  // Only the top slots animate here (they carry no DogCard entrance); the rest
+  // of the grid runs its own staggered fade, so leave those alone.
+  document.querySelectorAll<HTMLElement>("[data-grid-card]").forEach((el, i) => {
+    if (i >= 12) return;
+    const id = el.getAttribute("data-grid-card");
+    const from = id ? fromById.get(id) : undefined;
+    const to = el.getBoundingClientRect();
+    if (to.width === 0) return;
+    if (from && from.width > 0) {
+      // A pick from the fan: fly + grow from where it sat in the hand.
+      const dx = from.left + from.width / 2 - (to.left + to.width / 2);
+      const dy = from.top + from.height / 2 - (to.top + to.height / 2);
+      const sc = from.width / to.width;
+      el.animate(
+        [
+          { transform: `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) scale(${sc.toFixed(3)})` },
+          { transform: "translate(0px, 0px) scale(1)" },
+        ],
+        { duration: 640, easing: ease, fill: "both" }
+      );
+    } else {
+      // A top slot the fan didn't cover — a soft rise so it never hard-pops.
+      el.animate(
+        [
+          { opacity: 0, transform: "translateY(14px) scale(0.96)" },
+          { opacity: 1, transform: "translateY(0px) scale(1)" },
+        ],
+        { duration: 460, easing: ease, fill: "both" }
+      );
+    }
+  });
 }
 
 const cssEsc = (v: string) =>
@@ -1221,6 +1284,7 @@ export default function ScoutApp() {
                     return (
                       <div
                         key={d.id}
+                        data-grid-card={d.id}
                         className="scout-liftable relative"
                         style={
                           {
@@ -1229,6 +1293,8 @@ export default function ScoutApp() {
                             // the shortlist cards that land up top FLY into place
                             // while the rest of the grid just fades in — a calm,
                             // partial hand-off rather than a chaotic mass-morph.
+                            // (Mobile has no VT — flipHandoff animates these same
+                            // top slots via the data-grid-card handle instead.)
                             viewTransitionName: i < 12 ? vtName(d.id) : undefined,
                           } as React.CSSProperties
                         }
