@@ -1,14 +1,17 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
   <rect width="512" height="512" rx="112" fill="#1c8047"/>
-  <!-- Scout dog head, two perked ears, in warm cream on grass green -->
-  <g fill="#f7e6c8">
-    <path d="M170 210 C 128 130 140 66 190 40 C 238 66 260 132 244 208 Z"/>
-    <path d="M342 210 C 384 130 372 66 322 40 C 274 66 252 132 268 208 Z"/>
-    <path d="M256 118 C 342 118 402 178 402 262 C 402 350 336 410 256 410 C 176 410 110 350 110 262 C 110 178 170 118 256 118 Z"/>
+  <!-- Scout's head, matching the mascot: perked two-tone ears, a distinct
+       cream muzzle patch (not just a punched-out mouth), dark eyes + nose —
+       reads as a dog, not a cat/fox/bunny, down to 16px. -->
+  <g transform="translate(-89,62.8) scale(4.6)">
+    <path d="M48 38 C 41 24 43 9 52 4 C 60 9 64 23 61 37 Z" fill="#c88a43"/>
+    <path d="M52 33 C 47 22 48 13 53 9 C 57 13 59 22 57 32 Z" fill="#e2a37e"/>
+    <path d="M102 38 C 109 24 107 9 98 4 C 90 9 86 23 89 37 Z" fill="#c88a43"/>
+    <path d="M98 33 C 103 22 102 13 97 9 C 93 13 91 22 93 32 Z" fill="#e2a37e"/>
+    <path d="M75 16 C 96 16 109 30 109 50 C 109 68 95 80 75 80 C 55 80 41 68 41 50 C 41 30 54 16 75 16 Z" fill="#e6a95c"/>
+    <path d="M75 50 C 85 50 91 57 91 64 C 91 72 84 77 75 77 C 66 77 59 72 59 64 C 59 57 65 50 75 50 Z" fill="#f7e6c8"/>
+    <ellipse cx="58" cy="45" rx="4.6" ry="5.6" fill="#2a2320"/>
+    <ellipse cx="92" cy="45" rx="4.6" ry="5.6" fill="#2a2320"/>
+    <path d="M75 54.5 C 71.5 54.5 69.5 56.5 69.5 58.5 C 69.5 61 72 62.5 75 62.5 C 78 62.5 80.5 61 80.5 58.5 C 80.5 56.5 78.5 54.5 75 54.5 Z" fill="#2a2320"/>
   </g>
-  <!-- eyes + muzzle knocked out in green -->
-  <circle cx="206" cy="256" r="26" fill="#1c8047"/>
-  <circle cx="306" cy="256" r="26" fill="#1c8047"/>
-  <path d="M256 300 c -30 0 -52 20 -52 46 0 24 24 40 52 40 s 52 -16 52 -40 c 0 -26 -22 -46 -52 -46 Z" fill="#1c8047"/>
-  <circle cx="256" cy="322" r="20" fill="#f7e6c8"/>
 </svg>

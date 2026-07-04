@@ -17,13 +17,16 @@ import { candidateBlock, type SearchMatch } from "./aiSearch";
  * versioned object created once and reused across nightly runs, it runs on
  * Anthropic's managed loop + sandbox, and it leaves the door open to per-dog web
  * research (the `agent_toolset_20260401` toolset is attached) without any
- * rewrite. It is entirely OPTIONAL and DEGRADES GRACEFULLY: disabled, without a
- * key, or on any error it returns null and the caller falls back to the
- * deterministic ranking + reasons. It only ever produces text; it never contacts
- * a shelter.
+ * rewrite. It only ever produces text; it never contacts a shelter.
  *
- * Enable with SCOUT_MANAGED_AGENT=1 (needs an Anthropic key + Managed Agents
- * beta access). Model via SCOUT_MANAGED_AGENT_MODEL (default claude-opus-4-8).
+ * This curator is the STANDARD overnight path, on by default whenever an
+ * Anthropic credential is present — it's how every alert gets judged, not an
+ * add-on. It still degrades gracefully on any failure (no credential, no beta
+ * access, a bad response): curateWatchAlerts() returns null and the caller
+ * falls back to the deterministic ranking + reasons, so a rough night for the
+ * API is never a rough night for the alert. Opt out entirely with
+ * SCOUT_MANAGED_AGENT=0. Model via SCOUT_MANAGED_AGENT_MODEL (default
+ * claude-opus-4-8).
  */
 
 loadEnvFile({ path: ".env.local" });
@@ -49,9 +52,10 @@ Rules:
 - Respond with ONLY a JSON object, no prose, no code fences:
   {"alerts":[{"id":"...","headline":"...","blurb":"..."}]}`;
 
-/** True when the Managed Agent curator is enabled and a credential exists. */
+/** True when the Managed Agent curator can run: on by default with a credential,
+ *  opt-out only via SCOUT_MANAGED_AGENT=0. */
 export function hasManagedAgent(): boolean {
-  return process.env.SCOUT_MANAGED_AGENT === "1" && hasAnthropicCredential();
+  return process.env.SCOUT_MANAGED_AGENT !== "0" && hasAnthropicCredential();
 }
 
 export interface CuratedAlert {

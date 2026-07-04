@@ -14,8 +14,26 @@ import type { ParsedQuery } from "./aiSearch";
 
 type Gen = (name: string) => string;
 
+/** Placeholder names for the instant the loader needs to say SOMETHING but no
+ *  real candidate names are known yet — reads as a real dog, never "this pup". */
+export const FALLBACK_NAMES = [
+  "Rocket", "Cody", "Bowser", "Biscuit", "Nala", "Duke", "Luna", "Buddy",
+  "Daisy", "Max", "Bella", "Charlie", "Milo", "Rusty", "Peanut", "Ziggy",
+] as const;
+
+/** A fresh shuffle each call, so which fallback name leads (and their order)
+ *  varies search to search instead of always starting "Rocket, Cody, …". */
+function shuffledFallbackNames(): string[] {
+  const a: string[] = [...FALLBACK_NAMES];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 export function screeningLines(parsed: ParsedQuery, names: string[]): string[] {
-  const pool = names.length ? names : ["this pup"];
+  const pool = names.length ? names : shuffledFallbackNames();
 
   // Each active criterion contributes a small bank of on-topic phrasings.
   const gens: Gen[][] = [];
@@ -98,12 +116,13 @@ function buildLines(gens: Gen[][], pool: string[]): string[] {
  * Loading lines built straight from the RAW query text — used the instant a
  * search starts, before the structured parse returns, so the status never gets
  * stuck repeating "Scouting…". It scans the query for the same vocabulary the
- * parser looks for and makes plausible, on-topic phrases (names default to
- * "this pup"); once the real parse lands, screeningLines() takes over.
+ * parser looks for and makes plausible, on-topic phrases (names default to a
+ * rotating cast of placeholder dog names); once the real parse lands,
+ * screeningLines() takes over.
  */
 export function screeningLinesForText(query: string, names: string[]): string[] {
   const s = ` ${query.toLowerCase()} `;
-  const pool = names.length ? names : ["this pup"];
+  const pool = names.length ? names : shuffledFallbackNames();
   const gens: Gen[][] = [];
   const has = (re: RegExp) => re.test(s);
 

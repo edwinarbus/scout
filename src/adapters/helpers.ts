@@ -39,6 +39,33 @@ export function htmlToText(html: string | null | undefined): string | null {
   return text.length ? text : null;
 }
 
+/**
+ * A prose bio can carry a literal newline character ALONGSIDE a `<br>` tag
+ * for the same line wrap — an authoring artifact from whoever wrote it
+ * hard-wrapping a long line in their editor, not an intended break (seen in
+ * ShelterLuv's `kennel_description`). A browser rendering that markup
+ * collapses the raw newline away as insignificant whitespace and shows only
+ * the ONE break the `<br>` draws; naively converting both signals to `\n`
+ * doubles it into a blank PARAGRAPH gap landing mid-sentence. Even a single
+ * resulting `\n` still hard-wraps at that exact character offset regardless
+ * of the reader's actual line width, so — unlike a genuine `<br><br>`
+ * (clearly an intentional break, kept as a real paragraph gap) — any
+ * ISOLATED `<br>` is treated as the wrap artifact it almost certainly is and
+ * reflows as plain text instead. Call this on prose bios specifically
+ * (rather than changing the shared htmlToText, which structured-field
+ * adapters rely on to use single `<br>` as a real line delimiter). */
+export function htmlToProseText(html: string | null | undefined): string | null {
+  if (!html) return null;
+  const PARA = " PARA "; // placeholder that can't collide with real text
+  const normalized = html
+    .replace(/\s+/g, " ")
+    .replace(/(?:<br\s*\/?>\s*){2,}/gi, PARA)
+    .replace(/<br\s*\/?>/gi, " ")
+    .split(PARA)
+    .join("<br><br>"); // hand off to htmlToText for the rest of the pipeline
+  return htmlToText(normalized)?.replace(/ {2,}/g, " ") ?? null;
+}
+
 // "No photo available" placeholder detection lives in one shared place so the
 // UI, overnight scout, and prune script all agree with the adapters.
 export { isPlaceholderPhotoUrl } from "@/lib/photo";

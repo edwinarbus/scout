@@ -75,7 +75,11 @@ export default function CardFace({
         {/* name plate embedded along the photo's lower edge (omitted on the
             profile modal's transitional front face, which is photo-only) */}
         {!hideText && (
-        <div className="absolute inset-x-0 bottom-0 z-[3] bg-gradient-to-t from-black/80 via-black/35 to-transparent px-[6cqw] pb-[3.5cqw] pt-[16cqw]">
+        // text-left is explicit, not just the default — the shortlist fan sits
+        // inside a text-center section (for the heading above it), which would
+        // otherwise cascade down and center this nameplate instead of the name
+        // reading bottom-LEFT everywhere the card appears (sift, fan, grid).
+        <div className="scout-nameplate absolute inset-x-0 bottom-0 z-[3] bg-gradient-to-t from-black/80 via-black/35 to-transparent px-[6cqw] pb-[3.5cqw] pt-[16cqw] text-left">
           {/* sizes scale with the card WIDTH (cqw) so the name fits whether it's
               a big grid card or a tiny flying sift card */}
           <p className="truncate font-display text-[9cqw] font-bold leading-tight text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.5)]">

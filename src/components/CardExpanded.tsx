@@ -220,10 +220,24 @@ export default function CardExpanded({
       finished = true;
       const o = originEl.current;
       // The reverse flip already ends EXACTLY at the grid card's slot/size/tilt
-      // (a true mirror of the open), so just reveal it — no fade needed. A
-      // forced opacity 0→1 here made the grid card momentarily transparent the
-      // instant the modal unmounted, reading as a flash right at the end.
-      if (o) o.style.visibility = "";
+      // (a true mirror of the open), so the PHOTO just reveals instantly — no
+      // fade there (a forced opacity 0→1 on the whole card made it momentarily
+      // transparent the instant the modal unmounted, reading as a flash). But
+      // the shadow and the name/breed/stats plate are exclusive to the grid
+      // card — the modal's front face is photo-only — so revealing them
+      // instantly alongside the photo read as an abrupt pop. Committing them
+      // hidden for one frame, THEN letting them go (their CSS transition takes
+      // it from there), fades just those two in without re-touching the photo.
+      if (o) {
+        const cardEl = o.querySelector<HTMLElement>(".scout-card");
+        const plate = o.querySelector<HTMLElement>(".scout-nameplate");
+        cardEl?.classList.add("scout-card-reveal-hidden");
+        plate?.classList.add("scout-nameplate-hidden");
+        o.style.visibility = "";
+        void o.offsetWidth; // commit the hidden shadow/plate as the first painted frame
+        cardEl?.classList.remove("scout-card-reveal-hidden");
+        plate?.classList.remove("scout-nameplate-hidden");
+      }
       onClose();
     };
     // plain mode: just fade the card + backdrop out, then unmount

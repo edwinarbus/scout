@@ -1,6 +1,6 @@
 import type { AdapterContext, SourceAdapter } from "./types";
 import type { AdapterResult, ExtractedDog } from "@/lib/types";
-import { squish, isPlaceholderPhotoUrl, htmlToText } from "./helpers";
+import { squish, isPlaceholderPhotoUrl, htmlToProseText } from "./helpers";
 import { hashObject, sha256 } from "@/lib/hash";
 import { toIsoDate } from "@/lib/normalize";
 
@@ -109,8 +109,10 @@ function decodeAttrEntities(s: string): string {
  * the full animal record — including `kennel_description`, absent from the
  * list feed — embedded as an HTML-attribute-encoded JSON blob on the
  * `<iframe-animal :animal="…">` element. `kennel_description` is itself rich
- * text (raw `<br>` tags + entities, meant for `innerHTML`), so it gets a
- * second decode/strip pass via `htmlToText` after the JSON parse.
+ * text (raw `<br>` tags + entities, meant for `innerHTML`) — and this org's
+ * copy also carries a literal newline riding alongside each `<br>` (an
+ * authoring artifact), so it goes through `htmlToProseText` rather than the
+ * plain `htmlToText` to avoid landing a paragraph break mid-sentence.
  */
 export function parseAnimalDetailPage(html: string): { kennelDescription: string | null } {
   const m = html.match(/<iframe-animal\b[^>]*?\s:animal="([^"]*)"/);
@@ -122,7 +124,7 @@ export function parseAnimalDetailPage(html: string): { kennelDescription: string
     return { kennelDescription: null };
   }
   const raw = (animal as { kennel_description?: unknown } | null)?.kennel_description;
-  return { kennelDescription: typeof raw === "string" ? htmlToText(raw) : null };
+  return { kennelDescription: typeof raw === "string" ? htmlToProseText(raw) : null };
 }
 
 export function mapShelterluvAnimal(a: ShelterluvAnimal, domain: string): ExtractedDog {

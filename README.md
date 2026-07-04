@@ -1,198 +1,126 @@
-# 🐕 Scout — a personal California dog-adoption matcher
+# Scout
 
-Scout scrapes adoptable-dog listings from a dozen-plus California shelter and rescue
-systems, normalizes and dedupes them into one schema, and lets you find your dog by
-**describing it in plain language** ("scruffy small dog, good in an apartment, under 25 lb,
-been waiting a while, near Oakland"). Claude turns that sentence into a ranked shortlist,
-reading each dog's photo, bio, and shelter facts — and optionally watches the shelters
-overnight and texts you when a new match shows up.
+A personal, non-commercial California dog-adoption matcher. It scrapes real listings from a
+dozen-plus CA shelter and rescue systems onto one schema, then layers Claude on top of the raw
+data — natural-language search, photo understanding, and a nightly Managed Agent that curates
+and texts you new matches.
 
-> **Personal, non-commercial, and honest by construction.** Scout is a private
-> research/alerting tool, not a public adoption directory. Original shelter listings are
-> always the source of truth: every dog links back to its posting, every card reminds you
-> to confirm availability with the shelter, Claude's inferences are labeled as impressions
-> (never as shelter facts), and Scout never contacts a shelter automatically.
+The original shelter listing is always the source of truth. Nothing here republishes a
+listing as its own, contacts a shelter automatically, or claims a dog is unavailable without
+saying so plainly — every card links back to the shelter and reminds you to confirm before
+acting.
 
----
+## What it does
 
-## The Claude layer
+**Natural-language + voice search (Claude Sonnet 5).** One search box. Type or speak "scruffy
+small dog, good in an apartment, under 25 lb, been waiting a while, near Oakland" and Claude
+turns it into a ranked shortlist — parsing the sentence into structured criteria, then
+re-scoring the shortlist with shelter facts, bio text, photo reads, and breed-typical
+knowledge no structured field captures ("cattle-dog mixes need real exercise"). The loading
+state IS the matching: real candidate cards fly in and sift past the query text as each stage
+returns, then morph into the final scored grid via the View Transitions API — never a spinner
+in front of half-finished results. Voice input uses the browser's own Web Speech API, no key
+needed.
 
-Scout is built around the **[Claude API](https://platform.claude.com/docs)** via the
-official [`@anthropic-ai/sdk`](https://github.com/anthropics/anthropic-sdk-typescript). It
-leans on several distinct API capabilities — all optional: with no `ANTHROPIC_API_KEY` the
-map, filters, and deterministic matching still work, and the AI features simply stay dark.
+**Photo vision (Claude Haiku 4.5).** Reads one photo per dog into searchable visual features —
+coat length/texture ("scruffy," "fluffy"), apparent size, colors, a one-line description, a
+photo-quality flag — so search can match what a dog *looks like*, not just its shelter-listed
+fields. Cached by photo hash; a re-run only touches dogs whose photo actually changed.
 
-### Natural-language matching — `POST /api/search`
+**The Scout Watch Curator — a managed agent (Claude Managed Agents).** Save a search as a
+standing watch and every night Scout pulls fresh listings across every source, re-evaluates
+every watch, and hands genuinely new matches to a persisted, versioned Managed Agent that
+judges which are actually worth a text and writes the alert copy — grounded only in the facts
+it's given, never inventing a trait. With Twilio configured, each curated match is texted via
+the Twilio REST API; a per-watch ledger means you're never re-pinged about a dog you've seen.
 
-Typing (or **speaking**) a description runs a three-stage pipeline, staged so the UI can
-show its work — criteria chips appear in ~1s, real dog cards start sifting immediately, and
-the final scored grid morphs in via the View Transitions API.
+**Everything else you'd expect:** cross-source duplicate detection (flagged, never
+auto-merged), a cautious available → missing → likely-unavailable freshness ladder, photo
+hygiene (placeholder "image coming soon" graphics and broken images are pruned — no photo, no
+dog), and a source-health dashboard (robots.txt compliance, backfill status, per-source data
+completeness, confidence scoring).
 
-1. **Parse** — one **Messages API** call turns free text into a typed `SearchCriteria`
-   object (breed/size/age/sex/color, weight & length-of-stay bounds, place + radius, soft
-   visual traits, bio keywords). Uses **Structured Outputs**
-   (`output_config.format = { type: "json_schema", schema }`) so the response is guaranteed
-   to match the schema — no brittle JSON-from-prose parsing. Only your query text is sent.
-2. **Filter + shortlist** — deterministic, no API call: hard filters (unknown data never
-   rejects — it's surfaced as "unverified"), then trait/keyword scoring against cached photo
-   reads and bios. Works on its own if the API is unavailable.
-3. **Re-rank** — the top 40 candidates go back to Claude as compact evidence lines and it
-   scores fit 0–100, blending shelter facts, bio, photo read, **and breed-typical knowledge
-   the data can't express** ("cattle-dog mixes need real exercise"). Every reason is tagged
-   with its source; anything the data doesn't cover becomes an explicit `Unverified:` caveat
-   rather than a claim.
+## Stack
 
-**Claude API features in play here:**
+- **Next.js 15** (App Router) + React 19 + TypeScript + Tailwind CSS v4
+- **SQLite** (better-sqlite3) + **Drizzle ORM** — one portable file at `data/scout.db`
+- **MapLibre GL** with a free CARTO basemap, masked to California only
+- **cheerio** for HTML parsing behind a polite, per-source rate-limited fetch client
+- **sharp** for photo downscaling ahead of vision calls
+- **`@anthropic-ai/sdk`** — every Claude feature below
+- **Vitest** for tests (fixture-recorded, no live network), **tsx** for CLI scripts
 
-- **Structured Outputs** on every call (parse + each re-rank chunk) for schema-valid JSON.
-- **Prompt caching** — the large constant system prompt is sent with
-  `cache_control: { type: "ephemeral" }`, so the eight concurrent re-rank chunks and repeated
-  suggested-prompt clicks read the cached prefix instead of re-billing it.
-- **Parallel chunked calls** — the 40-dog shortlist is split into 5-dog chunks fired
-  concurrently with `Promise.allSettled`. Output tokens generate serially *within* a call, so
-  eight small parallel calls finish in roughly the time of one (~10–20 s instead of ~90 s) at
-  the same token cost. A failed chunk drops only its own dogs back to screened order.
-- **Model routing** — interactive search defaults to **Claude Sonnet 5** (near-Opus
-  understanding at interactive latency); override with `SCOUT_SEARCH_MODEL`.
+## Claude API surface
 
-### Vision enrichment — `npm run enrich`
+Claude shows up in three shapes across the app, each picked for what the task needs:
 
-A precomputed batch that reads **one photo per dog** with Claude's **multimodal Messages
-API**: the primary image is downscaled to a ≤512 px JPEG and sent as a base64 `image`
-content block, and **Structured Outputs** returns coat length/texture ("scruffy"/"fluffy"),
-apparent size, colors, searchable tags, a one-line description, a photo-quality flag, and a
-confidence. Reads land in a separate `dog_ai_enrichment` table, **cached by photo hash** so
-re-runs only touch dogs whose photo changed. The UI shows a `✨ AI` chip and an "AI photo
-read" panel, labeled as an unverified impression — and these tags are what NL search matches
-"scruffy"/"fluffy"/etc. against.
+| Feature | Model | API surface |
+|---|---|---|
+| Natural-language search | Sonnet 5 | `messages.create` with **Structured Outputs** (`output_config.format: json_schema`) for the parse stage; the same pattern repeated across the re-rank stage's parallel chunked calls (`Promise.allSettled`, 5-dog chunks — output tokens generate serially *within* a call, so 8 small concurrent calls finish in the time of one); **prompt caching** (`cache_control: ephemeral`) on the shared system prompt across chunks |
+| Photo vision | Haiku 4.5 | Multimodal `messages.create` — one downscaled (≤512px) base64 JPEG `image` content block per dog — with Structured Outputs, cached by photo hash so unchanged photos are never re-sent |
+| Scout Watch Curator | Opus 4.8 | **Managed Agents** — a persisted `Agent` (`beta.agents.create` + `beta.environments.create`), created once and reused, run per watch-check via `beta.sessions.create` + streamed `beta.sessions.events`; the `agent_toolset_20260401` toolset is attached for future per-dog web research |
 
-- **Model routing** — defaults to **Claude Haiku 4.5** (fast/cheap for a thousands-of-images
-  batch); set `SCOUT_VISION_MODEL=claude-opus-4-8` to upgrade.
-- Runs as a batch of independent single calls — no agent loop — so it's a scheduled local
-  job next to the SQLite DB, not a hosted agent (see below).
-
-### Overnight curator — Claude Managed Agents (beta, optional)
-
-The overnight scout's optional third layer (`SCOUT_MANAGED_AGENT=1`) sends each night's new
-matches to a **[Claude Managed Agent](https://platform.claude.com/docs/en/managed-agents/overview)**
-(`client.beta.agents.create` / `environments.create` / `sessions.create` + streamed
-`sessions.events`) — a **persistent, versioned agent created once and reused** (its id is
-cached in `data/managed-agent.json`, recreated only if the model or prompt changes). It
-judges which matches are genuinely worth alerting on, from facts only. The full
-`agent_toolset_20260401` toolset is attached (leaving room for future per-dog web research),
-though the curator prompt tells it to reason from the provided text without tools. Any
-failure falls back to the deterministic ranking. Defaults to **Claude Opus 4.8**
-(`SCOUT_MANAGED_AGENT_MODEL`).
-
-### Credentials & graceful degradation
-
-`src/lib/anthropic.ts` is the single entry point. The SDK's zero-arg constructor resolves
-credentials from the environment (`ANTHROPIC_API_KEY` → `ANTHROPIC_AUTH_TOKEN` → an
-`ant auth login` profile), and the file loads `.env.local` so the CLI scripts (`tsx`, which
-doesn't get Next's env loading) see the key too. `hasAnthropicCredential()` gates every AI
-path, so a missing key degrades cleanly instead of erroring.
-
----
-
-## Voice input
-
-The search box takes speech via the browser's built-in **Web Speech API** (Chrome, Safari)
-— no key, no upload. Interim words stream into the box live; a pause (or a second mic tap)
-auto-submits. Browsers without `SpeechRecognition` just don't show the mic.
-
-## Overnight scout — standing watches + SMS
-
-Run a search, tap **Watch this search**, and that natural-language query becomes a standing
-watch. `npm run scout:overnight` (point cron/launchd at it) ingests fresh listings, re-runs
-every watch through the same parse→filter pipeline, diffs against a per-watch "already
-alerted" ledger, and — with Twilio configured — texts you each genuinely **new**, adoptable,
-photographed match (via the Twilio REST API), never re-pinging a dog you've seen. Every
-layer is optional and degrades gracefully. The header bell manages watches, shows whether
-texts are on, and fires a test.
-
-## Data pipeline
-
-- **Sources** — one adapter per system, driven by a registry (`src/sources/registry.ts`)
-  that records politeness settings, robots/permission findings, and operator overrides.
-  Working families include LA Animal Services, LA County DACC, San Diego Humane,
-  SF ACC / SF SPCA, Oakland AS, 24Petconnect (5 county tenants), Adopets (Long Beach,
-  Front Street/Sacramento), ShelterLuv (Rocket Dog Rescue), Muttville, and Marin Humane.
-  Adding a ShelterLuv/Adopets org is a one-line tenant config.
-- **Dedupe** — within a source, every listing gets a stable `dedupeKey` (animal ID →
-  URL hash); in-batch duplicates merge (richer record wins) before upserting, preserving
-  `firstSeenAt` and user statuses. Across sources, canonical groups *flag* likely duplicates
-  (shared photo / name+breed overlap) with a confidence score — never auto-merging.
-- **Freshness lifecycle** — a deliberately cautious `available → missing_once →
-  missing_multiple_runs → likely_unavailable` ladder. Only conclusive runs (complete
-  pagination) can mark a dog missing; partial/failed runs freeze statuses and say so. Dogs
-  are never deleted.
-- **Photo hygiene** — placeholder "image coming soon" graphics (by URL pattern, redirect
-  target, or exact pixel dimensions) and broken images are dropped both client-side and via
-  `npm run scout:prune-photos`, so a placeholder never fronts a card. **No photo, no dog.**
-- **Health & confidence** — every run records a full stats bundle and a rule-based
-  confidence score (0–1). `/sources` surfaces per-source health, a data-completeness table,
-  robots/permission badges, and the exact next debugging step for anything degraded.
+Structured Outputs means a malformed parse response can't happen structurally; the re-rank
+stage's chunking means one failed chunk only drops *its* dogs back to deterministic order,
+never the whole search; and the curator's failure path (no beta access, a bad response) falls
+back cleanly to the deterministic alert ranking — a rough night for the API is never a rough
+night for the alert.
 
 ## Quick start
 
 ```bash
 npm install
 npm run seed                 # upsert the CA source registry
-npm run verify               # fixture-mode adapter checks (no network)
 npm run backfill -- --all    # full-inventory initialization (slow, polite)
-npm run dev                  # web UI at http://localhost:3000
+npm run dev                  # → http://localhost:3000
 ```
 
-Turn on the AI layer by adding a key to `.env.local` (gitignored):
+Real shelter data only — there's no mock/demo mode (the mock adapter exists solely for tests).
+Everything below is additive on top of that base pipeline.
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-...          # enables NL search + vision enrichment
-npm run enrich -- --all               # precompute photo reads (cached; safe to re-run)
+npm run enrich -- --all      # photo vision (Haiku 4.5), cached
+npm run ingest:all           # scrape every initialized source
+npm run scout:overnight      # ingest + watch check + Managed Agent curation + SMS
 ```
 
-**Daily driver:** `npm run refresh` ingests every initialized source, then — only if a key
-is present — enriches new/changed photos. Schedule it:
+In production, `ANTHROPIC_API_KEY` is set as a Vercel environment variable, so search, vision,
+and the overnight curator are always on.
 
-```cron
-0 7 * * *  cd ~/scout && ANTHROPIC_API_KEY=sk-ant-... npm run refresh >> data/refresh.log 2>&1
+## Environment variables
+
+| Variable | Required for | Notes |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | Search, vision, overnight curator | Set as a Vercel env var in production |
+| `SCOUT_SEARCH_MODEL` | — | Override the search model (default `claude-sonnet-5`) |
+| `SCOUT_VISION_MODEL` | — | Override the vision model (default `claude-haiku-4-5`) |
+| `SCOUT_MANAGED_AGENT_MODEL` | — | Override the curator model (default `claude-opus-4-8`) |
+| `SCOUT_MANAGED_AGENT=0` | — | Opt out of the curator specifically; search/vision unaffected |
+| `SCOUT_TWILIO_ACCOUNT_SID` / `_AUTH_TOKEN` / `_FROM` | SMS alerts | Twilio credentials |
+| `SCOUT_SMS_TO` | SMS alerts | Destination phone number |
+
+## Project layout
+
+```
+src/
+  adapters/     one file per shelter system (LA Animal Services, San Diego Humane,
+                24Petconnect, ShelterLuv, Adopets, ShelterBuddy, Oakland, Muttville, …)
+  ingest/       runner (daily + backfill, dedupe, gating), enrich (vision batch),
+                overnight (watch eval + curation + SMS), confidence scoring
+  lib/          anthropic (Claude client), aiSearch (parse + re-rank), managedAgent,
+                match, normalize, lifecycle, canonical, geo, photo, sms, dogView
+  sources/      registry.ts — CA source configs, politeness, permissions, tenant configs
+  db/           Drizzle schema + SQL migrations (SQLite; portable to Postgres/PostGIS)
+  app/          matcher + map UI (/), health dashboard (/sources), API routes
+scripts/        CLI entry points (seed, verify, backfill, ingest, enrich, overnight, …)
 ```
 
-Optional env (all degrade to "off"): `SCOUT_SEARCH_MODEL`, `SCOUT_VISION_MODEL`,
-`SCOUT_TWILIO_ACCOUNT_SID` / `_AUTH_TOKEN` / `_FROM`, `SCOUT_SMS_TO`, `SCOUT_MANAGED_AGENT=1`
-(+ `SCOUT_MANAGED_AGENT_MODEL`).
+## Scope & constraints
 
-Other commands: `npm run ingest:all` (daily scrape), `npm run scout:overnight`,
-`npm test`, `npm run typecheck`, `npm run lint`, `npm run db:studio`.
-
-## Architecture
-
-```
-scripts/         seed · verify · backfill · ingest · enrich · refresh · overnight · prune-photos
-src/sources/     registry.ts — CA sources, politeness, permissions, tenant configs
-src/adapters/    one per system (+ __fixtures__/ recorded pages for tests)
-src/ingest/      runner (daily + backfill, dedupe, gating) · enrich (vision) · overnight · confidence
-src/lib/         anthropic (Claude client) · aiSearch (parse + re-rank) · managedAgent ·
-                 match · normalize · lifecycle · canonical · geo · photo · sms · dogView
-src/app/         matcher + map UI (/) · health dashboard (/sources) · API routes
-src/db/          Drizzle schema + SQL migrations (SQLite; portable to Postgres/PostGIS)
-```
-
-**Stack:** Next.js 15 · React 19 · Tailwind v4 · MapLibre GL (free CARTO basemap) ·
-SQLite (better-sqlite3 + Drizzle) · cheerio · sharp · Vitest · `@anthropic-ai/sdk`.
-
-## Notes & limitations
-
-- Claude's photo reads and query parsing are inference from limited input (one image; your
-  words) — always shown as labeled impressions, never verified facts. Enrichment is only as
-  fresh as the last `refresh`.
-- Length-of-stay is only as good as the source's intake date; sources without one show none
-  rather than a guess. Some feeds omit size/weight/color — missing stays null, never faked.
-- Cross-source duplicate flags are heuristic; review before believing them.
-- Two sources need browser-profile headers (403 to non-browser clients); this is recorded as
-  an operator decision on the source row, and disabling the source removes it cleanly.
-
----
-
-*Scout collects public adoption listings for personal use, links every dog back to its
-original listing, and never automates contact with shelters. Verify everything with the
-shelter before acting — dogs get adopted fast, and that's the good outcome.*
+This is a single-person tool, not a product: no accounts, no multi-tenant data, no public
+API. Sources are fetched politely and at low frequency, respecting `robots.txt`; two sources
+that 403 non-browser clients use browser-profile headers as a recorded operator decision.
+Length-of-stay and some structured fields are only as good as what each shelter publishes —
+missing data stays null, never guessed. Cross-source duplicate flags are heuristic and never
+auto-merge. Claude's photo reads and query parsing are always shown as labeled impressions,
+never verified facts — and Scout never sends anything to a shelter on your behalf.

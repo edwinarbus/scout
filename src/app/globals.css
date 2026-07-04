@@ -768,6 +768,30 @@ body {
     0 4px 6px -2px rgba(41, 32, 26, 0.1),
     0 12px 24px -10px rgba(41, 32, 26, 0.28),
     0 28px 56px -20px rgba(41, 32, 26, 0.24);
+  transition: box-shadow 0.4s ease;
+}
+/* the grid card's transient state the instant a closing profile reveals it —
+   same shadow LAYERS (so the transition interpolates cleanly instead of
+   snapping from "none") but fully transparent, so the shadow fades IN rather
+   than popping in the instant the modal hands the slot back. See
+   CardExpanded's close(): the class is added before reveal, removed right
+   after, letting this transition carry it. */
+.scout-card-reveal-hidden {
+  box-shadow:
+    0 1.5px 0 -0.5px rgba(232, 221, 201, 0),
+    0 2.5px 0 -0.5px rgba(41, 32, 26, 0),
+    0 1px 1px rgba(41, 32, 26, 0),
+    0 4px 6px -2px rgba(41, 32, 26, 0),
+    0 12px 24px -10px rgba(41, 32, 26, 0),
+    0 28px 56px -20px rgba(41, 32, 26, 0);
+}
+/* the name/breed/stats plate (see CardFace) — fades in alongside the shadow
+   above on the same reveal, instead of snapping in with it. */
+.scout-nameplate {
+  transition: opacity 0.4s ease;
+}
+.scout-nameplate-hidden {
+  opacity: 0;
 }
 .scout-card:hover {
   box-shadow:

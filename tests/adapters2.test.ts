@@ -224,6 +224,12 @@ describe("ShelterLuv adapter (Rocket Dog family, recorded feed fixture)", () => 
     // the entity-encoded apostrophe and <br> tags must come out clean, not raw
     expect(kennelDescription).toContain("who's good");
     expect(kennelDescription).not.toMatch(/<br|&#0?39;|&amp;/);
+    // this source stores a literal newline ALONGSIDE its <br> for the same
+    // line wrap (an authoring artifact) — naively doubling both into \n\n
+    // landed a paragraph break mid-sentence, splitting "other" from "dogs".
+    // It must read as one continuous sentence, not two paragraphs.
+    expect(kennelDescription).toContain("experience around other dogs");
+    expect(kennelDescription).not.toMatch(/other\n/);
   });
 
   it("returns a null bio when the page has no iframe-animal element", () => {

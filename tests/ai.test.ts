@@ -16,7 +16,7 @@ import {
   type ParsedQuery,
   type SearchMatch,
 } from "@/lib/aiSearch";
-import { screeningLines } from "@/lib/screening";
+import { FALLBACK_NAMES, screeningLines } from "@/lib/screening";
 import {
   formatContextLine,
   isDogCharacteristicTag,
@@ -219,9 +219,10 @@ describe("staged-search helpers", () => {
   it("screeningLines falls back gracefully with no names and no criteria", () => {
     const lines = screeningLines(emptyParsed(), []);
     // a generous, playful run even with nothing to go on — every line still
-    // names the (placeholder) pup, and nothing is empty
+    // names a placeholder dog (never the generic "this pup"), and nothing is empty
     expect(lines.length).toBeGreaterThanOrEqual(10);
-    expect(lines.every((l) => l.includes("this pup"))).toBe(true);
+    expect(lines.every((l) => !l.includes("this pup"))).toBe(true);
+    expect(lines.every((l) => FALLBACK_NAMES.some((n) => l.includes(n)))).toBe(true);
     expect(lines.every((l) => l.trim().length > 0)).toBe(true);
   });
 
