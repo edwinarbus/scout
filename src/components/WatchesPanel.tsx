@@ -135,34 +135,29 @@ export default function WatchesPanel() {
   const runNow = useCallback(async () => {
     if (runState !== "idle") return;
     setRunState("loading");
-    setTestMsg("Running the scout…");
     const started = Date.now();
     let ok = false;
-    let msg = "Couldn't send.";
     try {
       const res = await fetch("/api/watches/run-now", { method: "POST" });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.ok) {
         ok = true;
-        msg = `Alerted you about ${data.dog}.`;
         refreshWatches();
-      } else {
-        msg = data.error ?? "Couldn't send — check your keys.";
       }
     } catch {
-      /* network error — keep the default msg */
+      /* leave ok=false → button just resets, no message */
     }
     // Hold the spinner for at least a beat so the run reads as real work.
     const elapsed = Date.now() - started;
     if (elapsed < 1000) await new Promise((r) => setTimeout(r, 1000 - elapsed));
-    setTestMsg(msg);
+    // The green check is the only success feedback — the status row is left
+    // untouched (still "Manually check for new matches").
     if (ok) {
       setRunState("done");
       setTimeout(() => setRunState("idle"), 2500);
     } else {
       setRunState("idle");
     }
-    setTimeout(() => setTestMsg(null), 6000);
   }, [refreshWatches, runState]);
 
   const deleteWatch = useCallback(
@@ -262,56 +257,20 @@ export default function WatchesPanel() {
             </button>
           </div>
 
-          {/* Alerts: text + push, with one on-demand "Run now" trigger */}
+          {/* Alerts */}
           <div className="rounded-xl bg-cream-100 p-3">
-            {/* Text alerts */}
             {sms === null ? (
-              <p className="text-[13px] text-ink-500">Checking text alerts…</p>
-            ) : sms.enabled ? (
-              <div>
-                <p className="text-[13.5px] font-bold text-ink-900">Notifications enabled</p>
-                <p className="text-[12px] text-ink-500">Manually for new matches</p>
-              </div>
-            ) : (
-              <p className="text-[13px] text-ink-500">
-                Text alerts aren&apos;t set up. Add your Twilio keys (
-                <code className="rounded bg-white px-1">SCOUT_TWILIO_*</code>) to{" "}
-                <code className="rounded bg-white px-1">.env.local</code>.
-              </p>
-            )}
-
-            {/* Push notifications */}
-            {push?.supported && push.enabled && (
-              <div className="mt-3 flex items-center justify-between gap-3 border-t border-cream-200 pt-3">
-                <div className="min-w-0">
-                  <p className="text-[13.5px] font-bold text-ink-900">
-                    Push notifications {push.subscribed ? "on" : "off"}
-                  </p>
+              <p className="text-[13px] text-ink-500">Checking notifications…</p>
+            ) : sms.enabled || push?.subscribed ? (
+              /* Notifications are on (text and/or push) — status + the manual
+                 "Run now" trigger live in ONE row. */
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13.5px] font-bold text-ink-900">Notifications enabled</p>
                   <p className="text-[12px] text-ink-500">
-                    {push.subscribed ? "This device gets a notification too." : "Get a notification on this device."}
+                    {testMsg ?? "Manually check for new matches"}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={togglePush}
-                  disabled={pushBusy}
-                  className={`shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition disabled:opacity-50 ${
-                    push.subscribed
-                      ? "bg-ink-900/10 text-ink-700 hover:bg-ink-900/15"
-                      : "bg-terra-500 text-white hover:bg-terra-600"
-                  }`}
-                >
-                  {push.subscribed ? "Turn off" : "Enable"}
-                </button>
-              </div>
-            )}
-
-            {/* One trigger for the whole scout — fires whichever channels are on */}
-            {(sms?.enabled || push?.subscribed) && (
-              <div className="mt-3 flex items-center justify-between gap-3 border-t border-cream-200 pt-3">
-                <p className="min-w-0 flex-1 text-[12px] text-ink-500">
-                  {testMsg ?? "Run the scout now to alert you about your top match."}
-                </p>
                 <button
                   type="button"
                   onClick={runNow}
@@ -335,6 +294,31 @@ export default function WatchesPanel() {
                   ) : (
                     "Run now"
                   )}
+                </button>
+              </div>
+            ) : (
+              <p className="text-[13px] text-ink-500">
+                Text alerts aren&apos;t set up. Add your Twilio keys (
+                <code className="rounded bg-white px-1">SCOUT_TWILIO_*</code>) to{" "}
+                <code className="rounded bg-white px-1">.env.local</code>.
+              </p>
+            )}
+
+            {/* Push enable — only until this device is subscribed; once push is
+                on, the whole section disappears. */}
+            {push?.supported && push.enabled && !push.subscribed && (
+              <div className="mt-3 flex items-center justify-between gap-3 border-t border-cream-200 pt-3">
+                <div className="min-w-0">
+                  <p className="text-[13.5px] font-bold text-ink-900">Push notifications</p>
+                  <p className="text-[12px] text-ink-500">Get a notification on this device.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={togglePush}
+                  disabled={pushBusy}
+                  className="shrink-0 rounded-full bg-terra-500 px-3.5 py-1.5 text-[13px] font-bold text-white transition hover:bg-terra-600 disabled:opacity-50"
+                >
+                  Enable
                 </button>
               </div>
             )}

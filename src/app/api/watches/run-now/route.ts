@@ -71,12 +71,12 @@ export async function POST() {
   // One sentence, shared by both channels. The SMS appends the link inline
   // (texts aren't clickable containers); push carries the same sentence and
   // opens the link on tap (its click target), so the copy reads identically.
-  const sentence = `${dogName}, was just found at ${shelterName}, and matches your ${watch.label} search.`;
+  const sentence = `${dogName} was just found at ${shelterName} and matches your search for ${watch.label}.`;
 
   const smsSent = hasSms() ? (await sendSms(`${sentence} ${d.originalUrl}`)) === "ok" : false;
   const pushSent = hasPush()
     ? (await sendPushToAll(db, {
-        title: "🐾 New match on Scout",
+        title: "New match",
         body: sentence,
         url: d.originalUrl,
         tag: `watch-${watch.id}`,
