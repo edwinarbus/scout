@@ -78,16 +78,25 @@ export default function WatchesPanel() {
     return () => window.removeEventListener("scout:watches-changed", onChange);
   }, [refreshWatches]);
 
-  const sendTest = useCallback(async () => {
-    setTestMsg("Sending…");
+  // "Run now": trigger the scout on demand — it finds the current top-fit dog
+  // for the newest saved search and texts it right away, as if an agent run
+  // had just surfaced it.
+  const runNow = useCallback(async () => {
+    setTestMsg("Running the scout…");
     try {
-      const res = await fetch("/api/sms", { method: "POST" });
-      setTestMsg(res.ok ? "Sent — check your phone." : "Couldn't send — check your Twilio keys.");
+      const res = await fetch("/api/watches/run-now", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) {
+        setTestMsg(`Texted you about ${data.dog} — check your phone.`);
+        refreshWatches();
+      } else {
+        setTestMsg(data.error ?? "Couldn't send — check your Twilio keys.");
+      }
     } catch {
       setTestMsg("Couldn't send.");
     }
-    setTimeout(() => setTestMsg(null), 5000);
-  }, []);
+    setTimeout(() => setTestMsg(null), 6000);
+  }, [refreshWatches]);
 
   const deleteWatch = useCallback(
     async (w: WatchItem) => {
@@ -200,10 +209,10 @@ export default function WatchesPanel() {
                 </div>
                 <button
                   type="button"
-                  onClick={sendTest}
+                  onClick={runNow}
                   className="shrink-0 rounded-full bg-ink-900/10 px-3.5 py-1.5 text-[13px] font-bold text-ink-700 transition hover:bg-ink-900/15"
                 >
-                  Test
+                  Run now
                 </button>
               </div>
             ) : (
