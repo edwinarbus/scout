@@ -6,7 +6,13 @@
  *   npm run scout:overnight -- --dry-run    # evaluate + log, send/record nothing
  *   npm run scout:overnight -- --no-ingest  # skip scraping, just re-check the DB
  *
- * Wire it to cron for a true overnight run, e.g. (2:15am nightly):
+ * This CLI runs the same logic (runOvernight) as POST /api/cron/overnight,
+ * which is what actually runs nightly in production — triggered by a Claude
+ * Managed Agents scheduled deployment (see scripts/setup-overnight-agent.ts)
+ * whose only job is to curl that endpoint on a cron, no server of your own to
+ * keep alive. Use this CLI for local testing/dry-runs. The line below is a
+ * plain-crontab alternative if you'd rather run it directly on a machine you
+ * control instead of via the API route (2:15am nightly):
  *   15 2 * * *  cd /path/to/scout && /usr/local/bin/npm run scout:overnight >> data/overnight.log 2>&1
  */
 import { parseArgs } from "node:util";

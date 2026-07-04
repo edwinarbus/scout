@@ -90,6 +90,22 @@ npm run scout:overnight      # ingest + watch check + Managed Agent curation + S
 In production, `ANTHROPIC_API_KEY` is set as a Vercel environment variable, so search, vision,
 and the overnight curator are always on.
 
+In production, the overnight run is triggered nightly (2:15am Pacific) by a **Claude Managed
+Agents scheduled deployment** — a tiny hosted agent whose only job is to `curl` the protected
+`POST /api/cron/overnight` route on a cron, entirely on Anthropic's infrastructure. No server,
+container, or GitHub Actions runner to keep alive, and no secrets duplicated anywhere: the route
+runs *on this Vercel deployment*, where `ANTHROPIC_API_KEY` / `TURSO_*` / `SCOUT_TWILIO_*` already
+live — the agent only ever holds one new secret, `CRON_SECRET`, which just gates that one route.
+Set it up once with:
+
+```bash
+vercel env add CRON_SECRET production   # pick any random value
+npm run scout:setup-overnight-agent     # same CRON_SECRET in your shell env
+```
+
+See `scripts/setup-overnight-agent.ts` for the exact resources it creates (environment, agent,
+vault, deployment) and how to re-run it idempotently.
+
 ## Environment variables
 
 | Variable | Required for | Notes |
@@ -102,6 +118,7 @@ and the overnight curator are always on.
 | `SCOUT_TWILIO_ACCOUNT_SID`, `SCOUT_TWILIO_AUTH_TOKEN`, `SCOUT_TWILIO_FROM` | SMS alerts | Twilio credentials — each is its own full env var name; don't abbreviate |
 | `SCOUT_SMS_TO` | SMS alerts | Destination phone number |
 | `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | Deployed use | Provisioned via the Vercel Marketplace Turso integration; no Turso credential falls back to a local SQLite file |
+| `CRON_SECRET` | Nightly overnight trigger | Gates `POST /api/cron/overnight` — set as a Vercel env var and passed to `scout:setup-overnight-agent` (see Quick start) |
 
 ## Project layout
 

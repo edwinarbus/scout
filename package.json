@@ -21,6 +21,7 @@
     "refresh": "tsx scripts/refresh.ts",
     "scout:vapid": "tsx scripts/vapid.ts",
     "scout:overnight": "tsx scripts/overnight.ts",
+    "scout:setup-overnight-agent": "tsx scripts/setup-overnight-agent.ts",
     "scout:prune-photos": "tsx scripts/prune-photos.ts",
     "scout:migrate-to-turso": "tsx scripts/migrate-to-turso.ts",
     "test": "vitest run",
