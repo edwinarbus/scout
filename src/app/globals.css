@@ -787,6 +787,18 @@ body {
 .scout-card-reveal-hidden::before {
   opacity: 0;
 }
+/* Applied for ONE frame as a closing profile reveals its grid card: it kills
+   the shadow/border/nameplate transitions so their hidden state commits
+   INSTANTLY (not itself animating), giving a definite baseline. The next frame
+   drops this + the hidden classes together, so all three transition IN cleanly.
+   Needed because Safari won't tick a transition on the still-hidden grid card,
+   so we can't pre-settle it — we commit the hidden state here, while visible.
+   See CardExpanded close()/finish(). */
+.scout-reveal-arming .scout-card,
+.scout-reveal-arming .scout-card::before,
+.scout-reveal-arming .scout-nameplate {
+  transition: none !important;
+}
 /* the name/breed/stats plate (see CardFace) — fades in alongside the shadow
    above on the same reveal, instead of snapping in with it. */
 .scout-nameplate {

@@ -152,23 +152,7 @@ export default function CardExpanded({
     if (!el) return;
 
     originEl.current = originRect ? document.getElementById(`card-${dog.id}`) : null;
-    if (originEl.current) {
-      originEl.current.style.visibility = "hidden";
-      // Pre-settle the grid card's shadow, printed border (.scout-card::before)
-      // and nameplate into their HIDDEN state now, while it's invisible behind
-      // the modal. Then on close we reveal it and simply remove these classes,
-      // so their transitions fade IN cleanly from an already-settled baseline.
-      // Toggling the classes at close time instead made each transition fight
-      // itself — adding the class started a fade toward hidden, removing it a
-      // frame later reversed that from a near-full value, so they snapped to
-      // full (the flash) and that pop at the landing read as a hard "snap down".
-      originEl.current
-        .querySelector<HTMLElement>(".scout-card")
-        ?.classList.add("scout-card-reveal-hidden");
-      originEl.current
-        .querySelector<HTMLElement>(".scout-nameplate")
-        ?.classList.add("scout-nameplate-hidden");
-    }
+    if (originEl.current) originEl.current.style.visibility = "hidden";
 
     if (!didOpenRef.current) {
       didOpenRef.current = true;
@@ -229,12 +213,12 @@ export default function CardExpanded({
       const o = origin.current;
       if (!o) return;
       o.style.visibility = "";
-      // Only reset the pre-settled hidden shadow/plate if we did NOT close
-      // normally. A normal close reveals + fades them in on the (persistent)
-      // grid card, and yanking the classes here would cancel that fade and pop
-      // them to full. On any other teardown, restore them so the grid card
-      // isn't left permanently shadowless/plateless.
+      // A normal close reveals + fades the shadow/plate in on the (persistent)
+      // grid card; yanking those classes here would cancel that fade and pop
+      // them to full. On any OTHER teardown, strip them so the grid card isn't
+      // left shadowless/plateless.
       if (!closing.current) {
+        o.classList.remove("scout-reveal-arming");
         o.querySelector<HTMLElement>(".scout-card")?.classList.remove("scout-card-reveal-hidden");
         o.querySelector<HTMLElement>(".scout-nameplate")?.classList.remove("scout-nameplate-hidden");
       }
@@ -277,20 +261,30 @@ export default function CardExpanded({
       finished = true;
       const o = originEl.current;
       // The reverse flip ends EXACTLY at the grid card's slot/size/tilt (a true
-      // mirror of the open), so the PHOTO reveals seamlessly. The grid card's
-      // shadow, printed border and nameplate were pre-settled to hidden at open
-      // (see above), so at this point revealing the card shows it shadowless/
-      // plateless — matching the modal's photo-only front face that just
-      // landed, i.e. NO pop. We reveal, then on the next frame remove the hidden
-      // classes so those three fade IN from that settled baseline (a clean 0.4s
-      // settle, not the self-fighting toggle that snapped them to full before).
+      // mirror of the open), so the PHOTO reveals seamlessly. But the grid
+      // card's shadow, printed border (.scout-card::before) and nameplate are
+      // exclusive to it — the modal's front face is photo-only — so we must
+      // fade those three IN as the card lands, or they pop (the flash).
+      //
+      // We COMMIT them to their hidden state instantly, while the card is
+      // visible, with transitions armed OFF (.scout-reveal-arming) — then on
+      // the next frame remove the arming + hidden classes so they transition IN
+      // from that guaranteed baseline. Committing hidden while the card is still
+      // invisible (the old pre-settle) was unreliable: Safari doesn't tick a
+      // transition on a hidden element, so the "from" value was never actually
+      // transparent and they flashed in on mobile.
       if (o) {
         const cardEl = o.querySelector<HTMLElement>(".scout-card");
         const plate = o.querySelector<HTMLElement>(".scout-nameplate");
+        o.classList.add("scout-reveal-arming");
+        cardEl?.classList.add("scout-card-reveal-hidden");
+        plate?.classList.add("scout-nameplate-hidden");
         o.style.visibility = "";
+        void o.offsetWidth; // commit the hidden state as the transition baseline
         requestAnimationFrame(() => {
+          o.classList.remove("scout-reveal-arming"); // transitions back on
           cardEl?.classList.remove("scout-card-reveal-hidden");
-          plate?.classList.remove("scout-nameplate-hidden");
+          plate?.classList.remove("scout-nameplate-hidden"); // → clean 0.4s fade
         });
       }
       onClose();
