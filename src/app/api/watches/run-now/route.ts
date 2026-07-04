@@ -5,25 +5,29 @@ import { watches } from "@/db/schema";
 import { buildDogViews } from "@/lib/dogView";
 import { buildAiIndex, evaluateWatch, selectNewMatches, type WatchLike } from "@/lib/watchEval";
 import { hasSms, sendSms } from "@/lib/sms";
+import { hasPush, sendPushToAll } from "@/lib/push";
 import { isPlaceholderName } from "@/lib/normalize";
 
 export const dynamic = "force-dynamic";
 
 /**
  * POST /api/watches/run-now — trigger the overnight scout ON DEMAND for the
- * newest saved watch and text its single best match right now, as if a Managed
- * Agent run had just surfaced it.
+ * newest saved watch and alert its single best match right now (SMS + web
+ * push), as if a Managed Agent run had just surfaced it.
  *
  * Unlike the scheduled overnight job this does NOT re-scrape (so it's instant
  * and reliable to fire live) and does NOT consult the already-notified ledger
- * (so it always sends about the current top-fit dog and can be re-run) — it
+ * (so it always speaks to the current top-fit dog and can be re-run) — it
  * evaluates the watch against the dogs already in the DB, takes the #1 ranked
- * adoptable match, and sends one SMS. The watch's lastChecked/lastNotified
+ * adoptable match, and alerts on it. The watch's lastChecked/lastNotified
  * bookkeeping is bumped so the UI reflects a fresh pickup.
  */
 export async function POST() {
-  if (!hasSms()) {
-    return NextResponse.json({ ok: false, error: "SMS not configured" }, { status: 400 });
+  if (!hasSms() && !hasPush()) {
+    return NextResponse.json(
+      { ok: false, error: "No alert channel configured (SMS or push)." },
+      { status: 400 }
+    );
   }
 
   const db = await getDb();
@@ -64,15 +68,27 @@ export async function POST() {
   const d = top.dog;
   const dogName = d.name && !isPlaceholderName(d.name) ? d.name : "A new dog";
   const shelterName = d.shelterName ?? d.shelterLocationName ?? d.source.name;
-  const body =
-    `${dogName}, was just found at ${shelterName}, and matches your ${watch.label} search.` +
-    ` ${d.originalUrl}`;
+  // One sentence, shared by both channels. The SMS appends the link inline
+  // (texts aren't clickable containers); push carries the same sentence and
+  // opens the link on tap (its click target), so the copy reads identically.
+  const sentence = `${dogName}, was just found at ${shelterName}, and matches your ${watch.label} search.`;
 
-  const sent = (await sendSms(body)) === "ok";
+  const smsSent = hasSms() ? (await sendSms(`${sentence} ${d.originalUrl}`)) === "ok" : false;
+  const pushSent = hasPush()
+    ? (await sendPushToAll(db, {
+        title: "🐾 New match on Scout",
+        body: sentence,
+        url: d.originalUrl,
+        tag: `watch-${watch.id}`,
+        image: d.primaryPhotoUrl ?? undefined,
+      })) > 0
+    : false;
+
+  const delivered = smsSent || pushSent;
 
   // Reflect a fresh agent pickup in the watch's bookkeeping so the panel/bell
   // read as if the scout just ran and found something new.
-  if (sent) {
+  if (delivered) {
     await db
       .update(watches)
       .set({
@@ -86,12 +102,14 @@ export async function POST() {
 
   return NextResponse.json(
     {
-      ok: sent,
+      ok: delivered,
       dog: dogName,
       shelter: shelterName,
       search: watch.label,
-      ...(sent ? {} : { error: "Couldn't send — check your Twilio keys." }),
+      smsSent,
+      pushSent,
+      ...(delivered ? {} : { error: "Couldn't deliver — check your Twilio/push keys." }),
     },
-    { status: sent ? 200 : 502 }
+    { status: delivered ? 200 : 502 }
   );
 }

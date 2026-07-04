@@ -1,6 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  disablePush,
+  enablePush,
+  fetchPushConfig,
+  isPushSupported,
+  isSubscribed,
+  registerServiceWorker,
+} from "@/lib/pushClient";
 
 /**
  * The standing-watches control: a small bell in the HEADER (top right) that
@@ -34,6 +42,10 @@ export default function WatchesPanel() {
   const [sms, setSms] = useState<SmsState | null>(null);
   const [watchList, setWatchList] = useState<WatchItem[]>([]);
   const [testMsg, setTestMsg] = useState<string | null>(null);
+  // Push: server config + this device's subscription state.
+  const [push, setPush] = useState<{ supported: boolean; enabled: boolean; publicKey: string; subscribed: boolean } | null>(null);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [runState, setRunState] = useState<"idle" | "loading" | "done">("idle");
   const rootRef = useRef<HTMLDivElement | null>(null);
 
   // A dropdown should dismiss like one: click anywhere outside or press
@@ -71,6 +83,44 @@ export default function WatchesPanel() {
       .catch(() => setSms({ enabled: false, to: "" }));
   }, []);
 
+  // Register the service worker and learn push status (server config + whether
+  // THIS device is already subscribed) so the toggle shows the right state.
+  useEffect(() => {
+    const supported = isPushSupported();
+    if (!supported) {
+      setPush({ supported: false, enabled: false, publicKey: "", subscribed: false });
+      return;
+    }
+    (async () => {
+      await registerServiceWorker();
+      const [cfg, subscribed] = await Promise.all([fetchPushConfig(), isSubscribed()]);
+      setPush({ supported: true, enabled: cfg.enabled, publicKey: cfg.publicKey, subscribed });
+    })();
+  }, []);
+
+  const togglePush = useCallback(async () => {
+    if (!push?.enabled || pushBusy) return;
+    setPushBusy(true);
+    try {
+      if (push.subscribed) {
+        await disablePush();
+        setPush((p) => (p ? { ...p, subscribed: false } : p));
+        setTestMsg("Notifications off on this device.");
+      } else {
+        const r = await enablePush(push.publicKey);
+        if (r === "ok") {
+          setPush((p) => (p ? { ...p, subscribed: true } : p));
+          setTestMsg("Notifications on — this device will be pinged too.");
+        } else {
+          setTestMsg(r === "denied" ? "Notifications were blocked in your browser." : "Couldn't enable notifications.");
+        }
+      }
+    } finally {
+      setPushBusy(false);
+      setTimeout(() => setTestMsg(null), 6000);
+    }
+  }, [push, pushBusy]);
+
   useEffect(() => {
     refreshWatches();
     const onChange = () => refreshWatches();
@@ -79,24 +129,41 @@ export default function WatchesPanel() {
   }, [refreshWatches]);
 
   // "Run now": trigger the scout on demand — it finds the current top-fit dog
-  // for the newest saved search and texts it right away, as if an agent run
-  // had just surfaced it.
+  // for the newest saved search and alerts it right away, as if an agent run
+  // had just surfaced it. The button spins while running, then shows a green
+  // check on success before settling back.
   const runNow = useCallback(async () => {
+    if (runState !== "idle") return;
+    setRunState("loading");
     setTestMsg("Running the scout…");
+    const started = Date.now();
+    let ok = false;
+    let msg = "Couldn't send.";
     try {
       const res = await fetch("/api/watches/run-now", { method: "POST" });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.ok) {
-        setTestMsg(`Texted you about ${data.dog} — check your phone.`);
+        ok = true;
+        msg = `Alerted you about ${data.dog}.`;
         refreshWatches();
       } else {
-        setTestMsg(data.error ?? "Couldn't send — check your Twilio keys.");
+        msg = data.error ?? "Couldn't send — check your keys.";
       }
     } catch {
-      setTestMsg("Couldn't send.");
+      /* network error — keep the default msg */
+    }
+    // Hold the spinner for at least a beat so the run reads as real work.
+    const elapsed = Date.now() - started;
+    if (elapsed < 1000) await new Promise((r) => setTimeout(r, 1000 - elapsed));
+    setTestMsg(msg);
+    if (ok) {
+      setRunState("done");
+      setTimeout(() => setRunState("idle"), 2500);
+    } else {
+      setRunState("idle");
     }
     setTimeout(() => setTestMsg(null), 6000);
-  }, [refreshWatches]);
+  }, [refreshWatches, runState]);
 
   const deleteWatch = useCallback(
     async (w: WatchItem) => {
@@ -195,25 +262,15 @@ export default function WatchesPanel() {
             </button>
           </div>
 
-          {/* Text-alert status */}
+          {/* Alerts: text + push, with one on-demand "Run now" trigger */}
           <div className="rounded-xl bg-cream-100 p-3">
+            {/* Text alerts */}
             {sms === null ? (
               <p className="text-[13px] text-ink-500">Checking text alerts…</p>
             ) : sms.enabled ? (
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-[13.5px] font-bold text-ink-900">Text alerts on</p>
-                  <p className="text-[12px] text-ink-500">
-                    {testMsg ?? `New matches are texted to ${sms.to || "your phone"}.`}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={runNow}
-                  className="shrink-0 rounded-full bg-ink-900/10 px-3.5 py-1.5 text-[13px] font-bold text-ink-700 transition hover:bg-ink-900/15"
-                >
-                  Run now
-                </button>
+              <div>
+                <p className="text-[13.5px] font-bold text-ink-900">Notifications enabled</p>
+                <p className="text-[12px] text-ink-500">Manually for new matches</p>
               </div>
             ) : (
               <p className="text-[13px] text-ink-500">
@@ -221,6 +278,65 @@ export default function WatchesPanel() {
                 <code className="rounded bg-white px-1">SCOUT_TWILIO_*</code>) to{" "}
                 <code className="rounded bg-white px-1">.env.local</code>.
               </p>
+            )}
+
+            {/* Push notifications */}
+            {push?.supported && push.enabled && (
+              <div className="mt-3 flex items-center justify-between gap-3 border-t border-cream-200 pt-3">
+                <div className="min-w-0">
+                  <p className="text-[13.5px] font-bold text-ink-900">
+                    Push notifications {push.subscribed ? "on" : "off"}
+                  </p>
+                  <p className="text-[12px] text-ink-500">
+                    {push.subscribed ? "This device gets a notification too." : "Get a notification on this device."}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={togglePush}
+                  disabled={pushBusy}
+                  className={`shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition disabled:opacity-50 ${
+                    push.subscribed
+                      ? "bg-ink-900/10 text-ink-700 hover:bg-ink-900/15"
+                      : "bg-terra-500 text-white hover:bg-terra-600"
+                  }`}
+                >
+                  {push.subscribed ? "Turn off" : "Enable"}
+                </button>
+              </div>
+            )}
+
+            {/* One trigger for the whole scout — fires whichever channels are on */}
+            {(sms?.enabled || push?.subscribed) && (
+              <div className="mt-3 flex items-center justify-between gap-3 border-t border-cream-200 pt-3">
+                <p className="min-w-0 flex-1 text-[12px] text-ink-500">
+                  {testMsg ?? "Run the scout now to alert you about your top match."}
+                </p>
+                <button
+                  type="button"
+                  onClick={runNow}
+                  disabled={runState !== "idle"}
+                  aria-label="Run now"
+                  className={`flex h-[30px] w-[86px] shrink-0 items-center justify-center rounded-full text-[13px] font-bold transition ${
+                    runState === "done"
+                      ? "bg-meadow-100 text-meadow-500"
+                      : "bg-ink-900/10 text-ink-700 hover:bg-ink-900/15"
+                  } disabled:cursor-default`}
+                >
+                  {runState === "loading" ? (
+                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
+                      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" className="opacity-25" />
+                      <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                    </svg>
+                  ) : runState === "done" ? (
+                    <svg className="scout-pop h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M4 12.5l5 5L20 6.5" />
+                    </svg>
+                  ) : (
+                    "Run now"
+                  )}
+                </button>
+              </div>
             )}
           </div>
 
