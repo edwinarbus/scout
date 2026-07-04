@@ -43,7 +43,10 @@ completeness, confidence scoring).
 ## Stack
 
 - **Next.js 15** (App Router) + React 19 + TypeScript + Tailwind CSS v4
-- **SQLite** (better-sqlite3) + **Drizzle ORM** — one portable file at `data/scout.db`
+- **[Turso](https://turso.tech)** (libSQL, SQLite-compatible) + **Drizzle ORM** — a serverless
+  function's filesystem is read-only outside `/tmp`, so the deployed app talks to a real
+  remote database rather than a local file; the same schema/queries fall back to a local
+  SQLite file with no Turso credential configured (`@libsql/client` supports both)
 - **MapLibre GL** with a free CARTO basemap, masked to California only
 - **cheerio** for HTML parsing behind a polite, per-source rate-limited fetch client
 - **sharp** for photo downscaling ahead of vision calls
@@ -98,6 +101,7 @@ and the overnight curator are always on.
 | `SCOUT_MANAGED_AGENT=0` | — | Opt out of the curator specifically; search/vision unaffected |
 | `SCOUT_TWILIO_ACCOUNT_SID` / `_AUTH_TOKEN` / `_FROM` | SMS alerts | Twilio credentials |
 | `SCOUT_SMS_TO` | SMS alerts | Destination phone number |
+| `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | Deployed use | Provisioned via the Vercel Marketplace Turso integration; no Turso credential falls back to a local SQLite file |
 
 ## Project layout
 
@@ -110,7 +114,7 @@ src/
   lib/          anthropic (Claude client), aiSearch (parse + re-rank), managedAgent,
                 match, normalize, lifecycle, canonical, geo, photo, sms, dogView
   sources/      registry.ts — CA source configs, politeness, permissions, tenant configs
-  db/           Drizzle schema + SQL migrations (SQLite; portable to Postgres/PostGIS)
+  db/           Drizzle schema + SQL migrations (libSQL/Turso, local-file fallback)
   app/          matcher + map UI (/), health dashboard (/sources), API routes
 scripts/        CLI entry points (seed, verify, backfill, ingest, enrich, overnight, …)
 ```

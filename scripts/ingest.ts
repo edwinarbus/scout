@@ -48,16 +48,16 @@ function fmtSummary(s: RunSummary): string {
 }
 
 async function main() {
-  const db = createDb();
+  const db = await createDb();
 
   if (args.list) {
-    const sources = db.select().from(adoptionSources).all();
+    const sources = await db.select().from(adoptionSources).all();
     if (sources.length === 0) {
       console.log("No sources seeded yet — run `npm run seed` first.");
       return;
     }
     for (const s of sources) {
-      const lastRun = db
+      const lastRun = await db
         .select()
         .from(sourceRuns)
         .where(eq(sourceRuns.sourceId, s.id))
@@ -82,7 +82,7 @@ async function main() {
     for (const id of args.source) {
       summaries.push(await ingestSource(db, id, opts));
     }
-    rebuildCanonicalGroups(db);
+    await rebuildCanonicalGroups(db);
   } else {
     console.log("Usage: npm run ingest -- --source <id> [--source <id>…] | --all | --list");
     process.exit(2);

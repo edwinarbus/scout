@@ -362,7 +362,7 @@ export async function verifyLive(
   sourceId: string,
   caps: { maxPages?: number; maxDetailPages?: number } = {}
 ): Promise<VerifyReport> {
-  const source = db
+  const source = await db
     .select()
     .from(adoptionSources)
     .where(eq(adoptionSources.id, sourceId))

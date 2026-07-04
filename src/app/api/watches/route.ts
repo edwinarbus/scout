@@ -8,9 +8,9 @@ import { hasAnthropicCredential } from "@/lib/anthropic";
 export const dynamic = "force-dynamic";
 
 /** GET /api/watches → the owner's standing watches, newest first. */
-export function GET() {
-  const db = getDb();
-  const rows = db.select().from(watches).orderBy(desc(watches.createdAt)).all();
+export async function GET() {
+  const db = await getDb();
+  const rows = await db.select().from(watches).orderBy(desc(watches.createdAt)).all();
   return NextResponse.json({
     watches: rows.map((w) => ({
       id: w.id,
@@ -65,8 +65,8 @@ export async function POST(req: Request) {
 
   const label = (body?.label?.trim() || query).slice(0, 80);
   const now = new Date();
-  const db = getDb();
-  const row = db
+  const db = await getDb();
+  const row = await db
     .insert(watches)
     .values({
       label,

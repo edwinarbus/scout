@@ -96,7 +96,7 @@ export async function sendPush(
  */
 export async function sendPushToAll(db: ScoutDb, payload: PushPayload): Promise<number> {
   if (!hasPush()) return 0;
-  const subs = db.select().from(pushSubscriptions).all();
+  const subs = await db.select().from(pushSubscriptions).all();
   if (!subs.length) return 0;
 
   const now = new Date();
@@ -106,12 +106,13 @@ export async function sendPushToAll(db: ScoutDb, payload: PushPayload): Promise<
       const result = await sendPush({ endpoint: s.endpoint, p256dh: s.p256dh, auth: s.auth }, payload);
       if (result === "ok") {
         delivered += 1;
-        db.update(pushSubscriptions)
+        await db
+          .update(pushSubscriptions)
           .set({ lastNotifiedAt: now })
           .where(eq(pushSubscriptions.endpoint, s.endpoint))
           .run();
       } else if (result === "gone") {
-        db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, s.endpoint)).run();
+        await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, s.endpoint)).run();
       }
     })
   );

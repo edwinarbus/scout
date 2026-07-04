@@ -18,27 +18,29 @@ const { values: args } = parseArgs({
 });
 
 async function main() {
-  const db = createDb();
+  const db = await createDb();
   const now = new Date();
 
   // ---- sources -------------------------------------------------------------
   let inserted = 0;
   let updated = 0;
   for (const def of SOURCE_REGISTRY) {
-    const existing = db
+    const existing = await db
       .select()
       .from(adoptionSources)
       .where(eq(adoptionSources.id, def.id))
       .get();
     if (!existing) {
-      db.insert(adoptionSources)
+      await db
+        .insert(adoptionSources)
         .values({ ...def, createdAt: now, updatedAt: now })
         .run();
       inserted++;
     } else {
       // Preserve locally-toggled `enabled` and runtime robots fields unless asked.
       const { enabled, robotsStatus: _rs, robotsCheckedAt: _rca, parserVersion: _pv, ...rest } = def;
-      db.update(adoptionSources)
+      await db
+        .update(adoptionSources)
         .set({
           ...rest,
           ...(args["reset-enabled"] ? { enabled } : {}),
@@ -61,9 +63,10 @@ async function main() {
     center: { latitude: 37.7749, longitude: -122.4194 }, // San Francisco
     maxDistanceMiles: 100,
   };
-  const existingSearch = db.select().from(savedSearches).all();
+  const existingSearch = await db.select().from(savedSearches).all();
   if (existingSearch.length === 0) {
-    db.insert(savedSearches)
+    await db
+      .insert(savedSearches)
       .values({
         name: "Small adult dachshund-ish dogs near SF",
         enabled: true,

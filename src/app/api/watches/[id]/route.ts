@@ -16,8 +16,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (typeof body?.active !== "boolean") {
     return NextResponse.json({ error: "active (boolean) required" }, { status: 400 });
   }
-  const db = getDb();
-  db.update(watches).set({ active: body.active }).where(eq(watches.id, watchId)).run();
+  const db = await getDb();
+  await db.update(watches).set({ active: body.active }).where(eq(watches.id, watchId)).run();
   return NextResponse.json({ ok: true });
 }
 
@@ -28,7 +28,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   if (!Number.isInteger(watchId)) {
     return NextResponse.json({ error: "invalid id" }, { status: 400 });
   }
-  const db = getDb();
-  db.delete(watches).where(eq(watches.id, watchId)).run();
+  const db = await getDb();
+  await db.delete(watches).where(eq(watches.id, watchId)).run();
   return NextResponse.json({ ok: true });
 }

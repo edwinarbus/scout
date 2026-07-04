@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // better-sqlite3 is a native module and must not be bundled by Next.
-  serverExternalPackages: ["better-sqlite3"],
+  // @libsql/client ships native bindings and must not be bundled by Next.
+  serverExternalPackages: ["@libsql/client"],
   // Personal, single-user tool — never meant to be indexed. This header
   // covers every route (including API routes, which carry no <meta> tags);
   // robots.ts (disallow all) and the page-level robots metadata are the

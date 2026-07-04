@@ -105,7 +105,7 @@ export async function ingestSource(
   const log = opts.log ?? ((m: string) => console.log(`  [${sourceId}] ${m}`));
   const startedAt = new Date();
 
-  const source = db
+  const source = await db
     .select()
     .from(adoptionSources)
     .where(eq(adoptionSources.id, sourceId))
@@ -161,7 +161,7 @@ export async function ingestSource(
   const adapter = getAdapter(source.adapterType);
   if (!adapter) {
     const msg = `no adapter implemented for adapterType "${source.adapterType}"`;
-    recordRun(db, source, startedAt, now, mode, { status: "failed", errorMessage: msg, warnings: [] });
+    await recordRun(db, source, startedAt, now, mode, { status: "failed", errorMessage: msg, warnings: [] });
     return { ...base, status: "failed", errorMessage: msg, durationMs: Date.now() - startedAt.getTime() };
   }
 
@@ -172,7 +172,8 @@ export async function ingestSource(
     const robots = await checkRobots(source.listingUrl, {
       browserHeaders: source.useBrowserHeaders,
     });
-    db.update(adoptionSources)
+    await db
+      .update(adoptionSources)
       .set({ robotsStatus: robots.status, robotsCheckedAt: now, updatedAt: now })
       .where(eq(adoptionSources.id, source.id))
       .run();
@@ -183,7 +184,8 @@ export async function ingestSource(
         );
       } else {
         const msg = `robots.txt disallows the listing path (rule: ${robots.matchedRule}); source auto-disabled for review`;
-        db.update(adoptionSources)
+        await db
+          .update(adoptionSources)
           .set({
             enabled: false,
             safeForPersonalLowFrequencyFetching: false,
@@ -194,7 +196,7 @@ export async function ingestSource(
           })
           .where(eq(adoptionSources.id, source.id))
           .run();
-        recordRun(db, source, startedAt, now, mode, {
+        await recordRun(db, source, startedAt, now, mode, {
           status: "blocked",
           errorMessage: msg,
           warnings: [],
@@ -213,7 +215,7 @@ export async function ingestSource(
   }
 
   // ---- adapter context -----------------------------------------------------
-  const existing = db
+  const existing = await db
     .select()
     .from(dogListings)
     .where(eq(dogListings.sourceId, source.id))
@@ -263,7 +265,7 @@ export async function ingestSource(
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     const status: RunStatus = /HTTP 403/.test(msg) ? "blocked" : "failed";
-    recordRun(db, source, startedAt, now, mode, {
+    await recordRun(db, source, startedAt, now, mode, {
       status,
       errorMessage: msg,
       warnings: preWarnings,
@@ -271,7 +273,7 @@ export async function ingestSource(
       rawDebugPath: debugSaved ? debugDir : null,
     });
     if (mode === "backfill") {
-      applyBackfillOutcome(db, source, now, startedAt, {
+      await applyBackfillOutcome(db, source, now, startedAt, {
         status,
         reported: null,
         raw: 0,
@@ -336,7 +338,7 @@ export async function ingestSource(
   let animalIdsPresent = 0;
   const seenKeys = new Set<string>();
 
-  db.transaction((tx) => {
+  await db.transaction(async (tx) => {
     for (const row of byKey.values()) {
       seenKeys.add(row.listingKey);
       if ((row.photoUrls?.length ?? 0) > 0) photosPresent++;
@@ -346,7 +348,7 @@ export async function ingestSource(
       }
       const prev = existingByKey.get(row.listingKey);
       if (!prev) {
-        tx.insert(dogListings).values(row).run();
+        await tx.insert(dogListings).values(row).run();
         newDogs++;
         continue;
       }
@@ -362,7 +364,8 @@ export async function ingestSource(
       ) {
         unchangedDogs++;
         const lifecycle = markSeen(prev);
-        tx.update(dogListings)
+        await tx
+          .update(dogListings)
           .set({ lastSeenAt: now, updatedAt: now, ...lifecycle })
           .where(eq(dogListings.id, prev.id))
           .run();
@@ -397,7 +400,8 @@ export async function ingestSource(
 
       if (merged.contentHash !== prev.contentHash) {
         changedDogs++;
-        tx.update(dogListings)
+        await tx
+          .update(dogListings)
           .set({
             ...(merged as NewDogListingRow),
             id: prev.id,
@@ -415,7 +419,8 @@ export async function ingestSource(
           .run();
       } else {
         unchangedDogs++;
-        tx.update(dogListings)
+        await tx
+          .update(dogListings)
           .set({ lastSeenAt: now, updatedAt: now, ...lifecycle })
           .where(eq(dogListings.id, prev.id))
           .run();
@@ -453,7 +458,7 @@ export async function ingestSource(
     );
   }
 
-  const priorGood = db
+  const priorGood = await db
     .select()
     .from(sourceRuns)
     .where(and(eq(sourceRuns.sourceId, source.id), inArray(sourceRuns.status, GOOD_RUN_STATUSES)))
@@ -479,7 +484,7 @@ export async function ingestSource(
   let missingDogs = 0;
   const missingUpdatesApplied = GOOD_RUN_STATUSES.includes(status);
   if (missingUpdatesApplied) {
-    db.transaction((tx) => {
+    await db.transaction(async (tx) => {
       for (const prev of existing) {
         if (seenKeys.has(prev.listingKey)) continue;
         const next = markMissed(
@@ -491,7 +496,8 @@ export async function ingestSource(
           now
         );
         missingDogs++;
-        tx.update(dogListings)
+        await tx
+          .update(dogListings)
           .set({ ...next, updatedAt: now })
           .where(eq(dogListings.id, prev.id))
           .run();
@@ -523,7 +529,7 @@ export async function ingestSource(
   });
 
   // ---- record run -------------------------------------------------------------------
-  recordRun(db, source, startedAt, now, mode, {
+  await recordRun(db, source, startedAt, now, mode, {
     status,
     errorMessage: null,
     warnings,
@@ -554,7 +560,8 @@ export async function ingestSource(
     countMismatch,
     confidenceScore: confidence,
   });
-  db.update(adoptionSources)
+  await db
+    .update(adoptionSources)
     .set({ parserVersion: adapter.parserVersion, updatedAt: now })
     .where(eq(adoptionSources.id, source.id))
     .run();
@@ -568,7 +575,7 @@ export async function ingestSource(
     // (missing detection only needs the complete card set).
     // (failed/blocked crawls returned earlier; here status is success/sww/partial)
     initialized = result.paginationCompleted === true && dogsFound > 0;
-    applyBackfillOutcome(db, source, now, startedAt, {
+    await applyBackfillOutcome(db, source, now, startedAt, {
       status,
       reported: result.totalReportedBySource,
       raw: rawListingsExtracted,
@@ -613,7 +620,7 @@ export async function ingestSource(
   };
 }
 
-function applyBackfillOutcome(
+async function applyBackfillOutcome(
   db: ScoutDb,
   source: AdoptionSourceRow,
   now: Date,
@@ -630,7 +637,8 @@ function applyBackfillOutcome(
     initialized: boolean;
   }
 ) {
-  db.update(adoptionSources)
+  await db
+    .update(adoptionSources)
     .set({
       backfillStatus: o.status,
       lastBackfillStartedAt: startedAt,
@@ -681,7 +689,7 @@ interface RecordRunExtras {
   confidenceScore?: number;
 }
 
-function recordRun(
+async function recordRun(
   db: ScoutDb,
   source: AdoptionSourceRow,
   startedAt: Date,
@@ -689,7 +697,8 @@ function recordRun(
   runType: "daily" | "backfill",
   extras: RecordRunExtras
 ) {
-  db.insert(sourceRuns)
+  await db
+    .insert(sourceRuns)
     .values({
       sourceId: source.id,
       runType,
@@ -733,7 +742,7 @@ export async function ingestAllEnabled(
   db: ScoutDb,
   opts: IngestOptions = {}
 ): Promise<RunSummary[]> {
-  const sources = db
+  const sources = await db
     .select()
     .from(adoptionSources)
     .where(eq(adoptionSources.enabled, true))
@@ -742,7 +751,7 @@ export async function ingestAllEnabled(
   for (const s of sources) {
     summaries.push(await ingestSource(db, s.id, opts));
   }
-  rebuildCanonicalGroups(db, opts.now ?? new Date());
+  await rebuildCanonicalGroups(db, opts.now ?? new Date());
   return summaries;
 }
 
@@ -750,8 +759,8 @@ export async function ingestAllEnabled(
  * Rebuild cross-listing canonical groups (over-dedupe by policy) and flag
  * possible duplicates for review. Deterministic and idempotent.
  */
-export function rebuildCanonicalGroups(db: ScoutDb, now: Date = new Date()): number {
-  const listings = db.select().from(dogListings).all();
+export async function rebuildCanonicalGroups(db: ScoutDb, now: Date = new Date()): Promise<number> {
+  const listings = await db.select().from(dogListings).all();
   const byId = new Map(listings.map((l) => [l.id, l]));
   const inputs: CanonicalInput[] = listings.map((l: DogListingRow) => ({
     id: l.id,
@@ -768,14 +777,15 @@ export function rebuildCanonicalGroups(db: ScoutDb, now: Date = new Date()): num
   }));
   const groups = buildCanonicalGroups(inputs);
 
-  db.transaction((tx) => {
-    tx.delete(canonicalDogs).run();
+  await db.transaction(async (tx) => {
+    await tx.delete(canonicalDogs).run();
     // Clear stale duplicate flags, then re-apply from fresh groups.
-    tx.update(dogListings)
+    await tx
+      .update(dogListings)
       .set({ possibleDuplicateOf: null, duplicateConfidence: null })
       .run();
     for (const g of groups) {
-      const inserted = tx
+      const inserted = await tx
         .insert(canonicalDogs)
         .values({
           mergeKey: g.mergeKey,
@@ -787,7 +797,8 @@ export function rebuildCanonicalGroups(db: ScoutDb, now: Date = new Date()): num
         })
         .returning({ id: canonicalDogs.id })
         .get();
-      tx.update(dogListings)
+      await tx
+        .update(dogListings)
         .set({ canonicalDogId: inserted.id })
         .where(inArray(dogListings.id, g.listingIds))
         .run();
@@ -808,7 +819,8 @@ export function rebuildCanonicalGroups(db: ScoutDb, now: Date = new Date()): num
           } else if (member?.sourceId === display?.sourceId) {
             conf = 0.85;
           }
-          tx.update(dogListings)
+          await tx
+            .update(dogListings)
             .set({ possibleDuplicateOf: g.displayListingId, duplicateConfidence: conf })
             .where(eq(dogListings.id, id))
             .run();

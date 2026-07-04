@@ -65,10 +65,10 @@ export async function POST(req: Request) {
       : null;
   const mode = body?.mode === "filter" ? "filter" : "full";
 
-  const db = getDb();
+  const db = await getDb();
   try {
     const parsed: ParsedQuery = body?.parsed ? normalizeParsed(body.parsed) : await parseQuery(query);
-    const dogs = buildDogViews(db);
+    const dogs = await buildDogViews(db);
     const aiByDog = new Map<string, DogAiTags>(
       dogs
         .filter((d) => d.ai)

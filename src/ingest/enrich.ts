@@ -314,7 +314,7 @@ export async function enrichDogs(db: ScoutDb, opts: EnrichOptions = {}): Promise
   const log = opts.log ?? ((m: string) => console.log(m));
   const concurrency = Math.max(1, Math.min(opts.concurrency ?? 4, 8));
 
-  const listings = db
+  const listings = await db
     .select({
       id: dogListings.id,
       primaryPhotoUrl: dogListings.primaryPhotoUrl,
@@ -332,13 +332,11 @@ export async function enrichDogs(db: ScoutDb, opts: EnrichOptions = {}): Promise
     )
     .all();
 
-  const existing = new Map(
-    db
-      .select({ dogListingId: dogAiEnrichment.dogListingId, photoHash: dogAiEnrichment.photoHash })
-      .from(dogAiEnrichment)
-      .all()
-      .map((r) => [r.dogListingId, { photoHash: r.photoHash }])
-  );
+  const existingRows = await db
+    .select({ dogListingId: dogAiEnrichment.dogListingId, photoHash: dogAiEnrichment.photoHash })
+    .from(dogAiEnrichment)
+    .all();
+  const existing = new Map(existingRows.map((r) => [r.dogListingId, { photoHash: r.photoHash }]));
 
   const { toAnalyze, skippedCached, skippedNoPhoto } = selectCandidates(
     listings,
@@ -374,7 +372,8 @@ export async function enrichDogs(db: ScoutDb, opts: EnrichOptions = {}): Promise
           ageBucket: ageBucketFromMonths(c.ageMonthsEstimate),
         });
         const row = mapVisionToRow(c, result, now);
-        db.insert(dogAiEnrichment)
+        await db
+          .insert(dogAiEnrichment)
           .values(row)
           .onConflictDoUpdate({ target: dogAiEnrichment.dogListingId, set: row })
           .run();

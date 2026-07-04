@@ -13,9 +13,9 @@ export async function POST(
 ) {
   const { id } = await params;
   const dogId = decodeURIComponent(id);
-  const db = getDb();
+  const db = await getDb();
 
-  const listing = db.select().from(dogListings).where(eq(dogListings.id, dogId)).get();
+  const listing = await db.select().from(dogListings).where(eq(dogListings.id, dogId)).get();
   if (!listing) {
     return NextResponse.json({ error: "unknown dog listing" }, { status: 404 });
   }
@@ -27,7 +27,7 @@ export async function POST(
   if (!body) return NextResponse.json({ error: "invalid JSON body" }, { status: 400 });
 
   if (body.status == null) {
-    db.delete(userDogStatuses).where(eq(userDogStatuses.dogListingId, dogId)).run();
+    await db.delete(userDogStatuses).where(eq(userDogStatuses.dogListingId, dogId)).run();
     return NextResponse.json({ ok: true, status: null });
   }
   if (!USER_DOG_STATUSES.includes(body.status)) {
@@ -36,7 +36,8 @@ export async function POST(
       { status: 400 }
     );
   }
-  db.insert(userDogStatuses)
+  await db
+    .insert(userDogStatuses)
     .values({
       dogListingId: dogId,
       status: body.status,

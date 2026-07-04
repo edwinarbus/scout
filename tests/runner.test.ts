@@ -50,10 +50,11 @@ function installAdapter(fn: () => Promise<AdapterResult> | AdapterResult) {
   };
 }
 
-function makeDb(): ScoutDb {
-  const db = createDb(":memory:");
+async function makeDb(): Promise<ScoutDb> {
+  const db = await createDb(":memory:");
   const now = new Date("2026-07-01T00:00:00Z");
-  db.insert(adoptionSources)
+  await db
+    .insert(adoptionSources)
     .values({
       id: "test_src",
       name: "Test Shelter",
@@ -78,8 +79,8 @@ function makeDb(): ScoutDb {
   return db;
 }
 
-const listing = (db: ScoutDb, key: string) =>
-  db.select().from(dogListings).where(eq(dogListings.listingKey, key)).get()!;
+const listing = async (db: ScoutDb, key: string) =>
+  (await db.select().from(dogListings).where(eq(dogListings.listingKey, key)).get())!;
 
 const T0 = new Date("2026-07-01T08:00:00Z");
 const T1 = new Date("2026-07-02T08:00:00Z");
@@ -89,8 +90,8 @@ const T4 = new Date("2026-07-05T08:00:00Z");
 
 describe("ingestion runner", () => {
   let db: ScoutDb;
-  beforeEach(() => {
-    db = makeDb();
+  beforeEach(async () => {
+    db = await makeDb();
   });
 
   it("inserts new listings with lifecycle + hashes, and records a SourceRun", async () => {
@@ -98,13 +99,13 @@ describe("ingestion runner", () => {
     const s = await ingestSource(db, "test_src", { now: T0, saveRawDebug: false });
     expect(s.status).toBe("success");
     expect(s.newDogs).toBe(2);
-    const row = listing(db, "A1");
+    const row = await listing(db, "A1");
     expect(row.id).toBe("test_src::A1");
     expect(row.staleStatus).toBe("available");
     expect(row.contentHash).toBeTruthy();
     expect(row.firstSeenAt).toEqual(T0);
     expect(row.statusNormalized).toBe("available");
-    const run = db.select().from(sourceRuns).all()[0];
+    const run = (await db.select().from(sourceRuns).all())[0];
     expect(run.status).toBe("success");
     expect(run.dogsFound).toBe(2);
     expect(run.paginationCompleted).toBe(true);
@@ -118,8 +119,8 @@ describe("ingestion runner", () => {
     const s2 = await ingestSource(db, "test_src", { now: T1, saveRawDebug: false });
     expect(s2.newDogs).toBe(0);
     expect(s2.unchangedDogs).toBe(1);
-    expect(db.select().from(dogListings).all()).toHaveLength(1);
-    let row = listing(db, "A1");
+    expect(await db.select().from(dogListings).all()).toHaveLength(1);
+    let row = await listing(db, "A1");
     expect(row.lastSeenAt).toEqual(T1);
     expect(row.firstSeenAt).toEqual(T0);
     expect(row.staleStatus).toBe("still_seen");
@@ -127,7 +128,7 @@ describe("ingestion runner", () => {
     installAdapter(() => okResult([dog({ sourceAnimalId: "A1", statusRaw: "Adoption Pending" })]));
     const s3 = await ingestSource(db, "test_src", { now: T2, saveRawDebug: false });
     expect(s3.changedDogs).toBe(1);
-    row = listing(db, "A1");
+    row = await listing(db, "A1");
     expect(row.statusNormalized).toBe("pending");
     expect(row.firstSeenAt).toEqual(T0); // never reset on change
   });
@@ -139,24 +140,24 @@ describe("ingestion runner", () => {
     installAdapter(() => okResult([dog({ sourceAnimalId: "A1" })]));
     const s2 = await ingestSource(db, "test_src", { now: T1, saveRawDebug: false });
     expect(s2.missingDogs).toBe(1);
-    let a2 = listing(db, "A2");
+    let a2 = await listing(db, "A2");
     expect(a2.staleStatus).toBe("missing_once");
     expect(a2.missingSince).toEqual(T1);
 
     await ingestSource(db, "test_src", { now: T2, saveRawDebug: false });
-    a2 = listing(db, "A2");
+    a2 = await listing(db, "A2");
     expect(a2.staleStatus).toBe("missing_multiple_runs");
     expect(a2.missingSince).toEqual(T1); // first-missing preserved
 
     await ingestSource(db, "test_src", { now: T3, saveRawDebug: false });
     await ingestSource(db, "test_src", { now: T4, saveRawDebug: false });
-    a2 = listing(db, "A2");
+    a2 = await listing(db, "A2");
     expect(a2.staleStatus).toBe("likely_unavailable");
 
     // reappears → fully reset
     installAdapter(() => okResult([dog({ sourceAnimalId: "A1" }), dog({ sourceAnimalId: "A2" })]));
     await ingestSource(db, "test_src", { now: new Date("2026-07-06T08:00:00Z"), saveRawDebug: false });
-    a2 = listing(db, "A2");
+    a2 = await listing(db, "A2");
     expect(a2.staleStatus).toBe("still_seen");
     expect(a2.missingSince).toBeNull();
     expect(a2.missedRunCount).toBe(0);
@@ -172,10 +173,10 @@ describe("ingestion runner", () => {
     const s = await ingestSource(db, "test_src", { now: T1, saveRawDebug: false });
     expect(s.status).toBe("failed");
     expect(s.errorMessage).toContain("site exploded");
-    const row = listing(db, "A1");
+    const row = await listing(db, "A1");
     expect(row.staleStatus).toBe("available"); // untouched
     expect(row.lastSeenAt).toEqual(T0);
-    const runs = db.select().from(sourceRuns).all();
+    const runs = await db.select().from(sourceRuns).all();
     expect(runs.at(-1)!.status).toBe("failed");
     expect(runs.at(-1)!.missingUpdatesApplied).toBe(false);
   });
@@ -194,9 +195,9 @@ describe("ingestion runner", () => {
     expect(s.status).toBe("partial");
     expect(s.missingDogs).toBe(0);
     expect(s.missingUpdatesApplied).toBe(false);
-    expect(listing(db, "A2").staleStatus).toBe("available");
+    expect((await listing(db, "A2")).staleStatus).toBe("available");
     // but the seen dog still gets its lastSeenAt bump
-    expect(listing(db, "A1").lastSeenAt).toEqual(T1);
+    expect((await listing(db, "A1")).lastSeenAt).toEqual(T1);
   });
 
   it("treats zero dogs as partial (parser break guard), not as everything-adopted", async () => {
@@ -205,7 +206,7 @@ describe("ingestion runner", () => {
     installAdapter(() => okResult([]));
     const s = await ingestSource(db, "test_src", { now: T1, saveRawDebug: false });
     expect(s.status).toBe("partial");
-    expect(listing(db, "A1").staleStatus).toBe("available");
+    expect((await listing(db, "A1")).staleStatus).toBe("available");
   });
 
   it("treats a sharp count drop as partial and freezes stale statuses", async () => {
@@ -217,7 +218,7 @@ describe("ingestion runner", () => {
     expect(s.status).toBe("partial");
     expect(s.warnings.some((w) => w.includes("dropped sharply"))).toBe(true);
     expect(s.missingDogs).toBe(0);
-    expect(listing(db, "A19").staleStatus).toBe("available");
+    expect((await listing(db, "A19")).staleStatus).toBe("available");
   });
 
   it("preserves detail-only fields when the adapter skips an unchanged detail page", async () => {
@@ -248,38 +249,40 @@ describe("ingestion runner", () => {
     );
     const s = await ingestSource(db, "test_src", { now: T1, saveRawDebug: false });
     expect(s.unchangedDogs).toBe(1);
-    const row = listing(db, "A1");
+    const row = await listing(db, "A1");
     expect(row.biographyRaw).toBe("A wonderful long biography."); // preserved
     expect(row.goodWithCats).toBe(true);
     expect(row.detailFetchedAt).toEqual(T0);
   });
 
   it("records failed run for unimplemented adapter types", async () => {
-    db.update(adoptionSources)
+    await db
+      .update(adoptionSources)
       .set({ adapterType: "unknown" })
       .where(eq(adoptionSources.id, "test_src"))
       .run();
     const s = await ingestSource(db, "test_src", { now: T0, saveRawDebug: false });
     expect(s.status).toBe("failed");
     expect(s.errorMessage).toContain("no adapter implemented");
-    expect(db.select().from(sourceRuns).all()).toHaveLength(1);
+    expect(await db.select().from(sourceRuns).all()).toHaveLength(1);
   });
 
   it("skips disabled sources without recording a run", async () => {
-    db.update(adoptionSources)
+    await db
+      .update(adoptionSources)
       .set({ enabled: false })
       .where(eq(adoptionSources.id, "test_src"))
       .run();
     const s = await ingestSource(db, "test_src", { now: T0, saveRawDebug: false });
     expect(s.skipped).toBe(true);
-    expect(db.select().from(sourceRuns).all()).toHaveLength(0);
+    expect(await db.select().from(sourceRuns).all()).toHaveLength(0);
   });
 });
 
 describe("dog views (UI shape)", () => {
   let db: ScoutDb;
-  beforeEach(() => {
-    db = makeDb();
+  beforeEach(async () => {
+    db = await makeDb();
   });
 
   it("inherits contact info from the source, dog overrides win", async () => {
@@ -290,8 +293,8 @@ describe("dog views (UI shape)", () => {
       ])
     );
     await ingestSource(db, "test_src", { now: T0, saveRawDebug: false });
-    rebuildCanonicalGroups(db, T0);
-    const views = buildDogViews(db, T0);
+    await rebuildCanonicalGroups(db, T0);
+    const views = await buildDogViews(db, T0);
     const a1 = views.find((v) => v.id === "test_src::A1")!;
     const a2 = views.find((v) => v.id === "test_src::A2")!;
     expect(a1.contact.phone).toBe("(555) 111-2222"); // inherited
@@ -310,7 +313,8 @@ describe("dog views (UI shape)", () => {
     );
     await ingestSource(db, "test_src", { now: T0, saveRawDebug: false });
     // a source without coords → city fallback
-    db.update(adoptionSources)
+    await db
+      .update(adoptionSources)
       .set({ latitude: null, longitude: null })
       .where(eq(adoptionSources.id, "test_src"))
       .run();
@@ -320,8 +324,8 @@ describe("dog views (UI shape)", () => {
       dog({ sourceAnimalId: "CITY", city: "Oakland" }),
     ]));
     await ingestSource(db, "test_src", { now: T1, saveRawDebug: false });
-    rebuildCanonicalGroups(db, T1);
-    const views = buildDogViews(db, T1);
+    await rebuildCanonicalGroups(db, T1);
+    const views = await buildDogViews(db, T1);
     expect(views.find((v) => v.id === "test_src::EXACT")!.geocodePrecision).toBe("exact_shelter");
     expect(views.find((v) => v.id === "test_src::CITY")!.geocodePrecision).toBe("city");
     const campus = views.find((v) => v.id === "test_src::CAMPUS")!;
@@ -330,7 +334,8 @@ describe("dog views (UI shape)", () => {
 
   it("collapses canonical duplicates into one view with duplicate links", async () => {
     // second source cross-posting the same dog
-    db.insert(adoptionSources)
+    await db
+      .insert(adoptionSources)
       .values({
         id: "test_src2",
         name: "Cross-post Rescue",
@@ -349,8 +354,8 @@ describe("dog views (UI shape)", () => {
     await ingestSource(db, "test_src", { now: T0, saveRawDebug: false });
     installAdapter(() => okResult([dog({ sourceAnimalId: "Y9", name: "Waffles", sexRaw: "Female" })]));
     await ingestSource(db, "test_src2", { now: T1, saveRawDebug: false });
-    rebuildCanonicalGroups(db, T1);
-    const views = buildDogViews(db, T1);
+    await rebuildCanonicalGroups(db, T1);
+    const views = await buildDogViews(db, T1);
     const waffles = views.filter((v) => v.name === "Waffles");
     expect(waffles).toHaveLength(1); // over-deduped to one card
     expect(waffles[0].duplicates).toHaveLength(1);
@@ -358,7 +363,8 @@ describe("dog views (UI shape)", () => {
   });
 
   it("computes saved-search matches and exposes user statuses", async () => {
-    db.insert(savedSearches)
+    await db
+      .insert(savedSearches)
       .values({
         name: "labs near sf",
         enabled: true,
@@ -370,11 +376,12 @@ describe("dog views (UI shape)", () => {
     // intake on/after the NEW cutoff (2026-07-02) → flagged "just arrived"
     installAdapter(() => okResult([dog({ sourceAnimalId: "A1", intakeDateRaw: "2026-07-05" })]));
     await ingestSource(db, "test_src", { now: T0, saveRawDebug: false });
-    rebuildCanonicalGroups(db, T0);
-    db.insert(userDogStatuses)
+    await rebuildCanonicalGroups(db, T0);
+    await db
+      .insert(userDogStatuses)
       .values({ dogListingId: "test_src::A1", status: "saved", updatedAt: T0 })
       .run();
-    const views = buildDogViews(db, T0);
+    const views = await buildDogViews(db, T0);
     expect(views[0].matchedSearches).toEqual(["labs near sf"]);
     expect(views[0].userStatus).toBe("saved");
     expect(views[0].isNew).toBe(true); // intake ≥ cutoff
@@ -388,8 +395,8 @@ describe("dog views (UI shape)", () => {
       ])
     );
     await ingestSource(db, "test_src", { now: T0, saveRawDebug: false });
-    rebuildCanonicalGroups(db, T0);
-    const views = buildDogViews(db, T0);
+    await rebuildCanonicalGroups(db, T0);
+    const views = await buildDogViews(db, T0);
     expect(views.every((v) => v.isNew === false)).toBe(true);
   });
 
@@ -401,8 +408,8 @@ describe("dog views (UI shape)", () => {
       ])
     );
     await ingestSource(db, "test_src", { now: T0, saveRawDebug: false });
-    rebuildCanonicalGroups(db, T0);
-    const views = buildDogViews(db, T0);
+    await rebuildCanonicalGroups(db, T0);
+    const views = await buildDogViews(db, T0);
     const yes = views.find((v) => v.id === "test_src::MDYNEW")!;
     const no = views.find((v) => v.id === "test_src::MDYOLD")!;
     expect(yes.isNew).toBe(true); // MM/DD/YYYY parsed, not string-compared
@@ -419,8 +426,8 @@ describe("dog views (UI shape)", () => {
     );
     // now = 2026-07-01 → 30 days after intake
     await ingestSource(db, "test_src", { now: T0, saveRawDebug: false });
-    rebuildCanonicalGroups(db, T0);
-    const views = buildDogViews(db, T0);
+    await rebuildCanonicalGroups(db, T0);
+    const views = await buildDogViews(db, T0);
     const withIntake = views.find((v) => v.sourceAnimalId === "WITHINTAKE")!;
     const noIntake = views.find((v) => v.sourceAnimalId === "NOINTAKE")!;
     expect(withIntake.daysInShelter).toBe(30);
@@ -432,7 +439,7 @@ describe("dog views (UI shape)", () => {
   it("never returns negative daysInShelter for future intake dates (clock skew)", async () => {
     installAdapter(() => okResult([dog({ sourceAnimalId: "FUTURE", intakeDateRaw: "2026-12-01" })]));
     await ingestSource(db, "test_src", { now: T0, saveRawDebug: false });
-    rebuildCanonicalGroups(db, T0);
-    expect(buildDogViews(db, T0)[0].daysInShelter).toBeNull();
+    await rebuildCanonicalGroups(db, T0);
+    expect((await buildDogViews(db, T0))[0].daysInShelter).toBeNull();
   });
 });

@@ -42,8 +42,8 @@ function fmt(r: VerifyReport, verbose: boolean): string {
 }
 
 async function main() {
-  const db = createDb();
-  let sources = db.select().from(adoptionSources).all();
+  const db = await createDb();
+  let sources = await db.select().from(adoptionSources).all();
   if (args.source?.length) {
     sources = sources.filter((s) => args.source!.includes(s.id));
   } else if (args.enabled) {

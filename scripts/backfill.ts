@@ -45,12 +45,12 @@ function fmt(s: RunSummary): string {
 }
 
 async function main() {
-  const db = createDb();
+  const db = await createDb();
   let ids: string[] = [];
   if (args.source?.length) {
     ids = args.source;
   } else if (args.all || args.priority) {
-    const sources = db
+    const sources = await db
       .select()
       .from(adoptionSources)
       .where(eq(adoptionSources.enabled, true))
@@ -73,7 +73,7 @@ async function main() {
     summaries.push(s);
     console.log(fmt(s) + "\n");
   }
-  rebuildCanonicalGroups(db);
+  await rebuildCanonicalGroups(db);
 
   const initialized = summaries.filter((s) => s.initializedForDailyMonitoring).length;
   const failed = summaries.filter((s) => s.status === "failed" || s.status === "blocked").length;

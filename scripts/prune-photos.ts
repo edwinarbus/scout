@@ -110,8 +110,8 @@ async function filterConcurrent<T>(
 }
 
 async function main() {
-  const db = createDb();
-  const rows = db
+  const db = await createDb();
+  const rows = await db
     .select({ url: dogListings.primaryPhotoUrl })
     .from(dogListings)
     .where(isNotNull(dogListings.primaryPhotoUrl))
@@ -149,12 +149,12 @@ async function main() {
   let pruned = 0;
   for (let j = 0; j < bad.length; j += 200) {
     const chunk = bad.slice(j, j + 200);
-    const res = db
+    const res = await db
       .update(dogListings)
       .set({ primaryPhotoUrl: null })
       .where(inArray(dogListings.primaryPhotoUrl, chunk))
       .run();
-    pruned += res.changes;
+    pruned += res.rowsAffected;
   }
   console.log(`Pruned ${pruned} listing(s) — they'll no longer appear anywhere.`);
 }

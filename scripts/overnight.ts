@@ -21,7 +21,7 @@ const { values: args } = parseArgs({
 });
 
 async function main() {
-  const db = createDb();
+  const db = await createDb();
   const summary = await runOvernight(db, {
     ingest: !args["no-ingest"],
     dryRun: !!args["dry-run"],

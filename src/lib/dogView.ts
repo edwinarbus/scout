@@ -168,13 +168,15 @@ const USER_STATUS_PRIORITY: UserDogStatus[] = [
   "hidden",
 ];
 
-export function buildDogViews(db: ScoutDb, now: Date = new Date()): DogView[] {
-  const listings = db.select().from(dogListings).all();
-  const sources = db.select().from(adoptionSources).all();
-  const statuses = db.select().from(userDogStatuses).all();
-  const searches = db.select().from(savedSearches).all();
-  const runs = db.select().from(sourceRuns).orderBy(desc(sourceRuns.startedAt)).all();
-  const enrichment = db.select().from(dogAiEnrichment).all();
+export async function buildDogViews(db: ScoutDb, now: Date = new Date()): Promise<DogView[]> {
+  const [listings, sources, statuses, searches, runs, enrichment] = await Promise.all([
+    db.select().from(dogListings).all(),
+    db.select().from(adoptionSources).all(),
+    db.select().from(userDogStatuses).all(),
+    db.select().from(savedSearches).all(),
+    db.select().from(sourceRuns).orderBy(desc(sourceRuns.startedAt)).all(),
+    db.select().from(dogAiEnrichment).all(),
+  ]);
   const aiByListing = new Map(enrichment.map((e) => [e.dogListingId, e]));
 
   const sourceById = new Map(sources.map((s) => [s.id, s]));

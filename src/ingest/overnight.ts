@@ -95,13 +95,13 @@ export async function runOvernight(
     log(`Ingested ${runs.length} sources · ${newDogs} newly listed dogs.`);
   }
 
-  const activeWatches = db.select().from(watches).where(eq(watches.active, true)).all();
+  const activeWatches = await db.select().from(watches).where(eq(watches.active, true)).all();
   if (!activeWatches.length) {
     log("No active watches — nothing to check.");
     return summary;
   }
 
-  const dogs = buildDogViews(db, now);
+  const dogs = await buildDogViews(db, now);
   const aiByDog = buildAiIndex(dogs);
   const usingAgent = hasManagedAgent();
   log(
@@ -121,7 +121,7 @@ export async function runOvernight(
     };
     const ranked = evaluateWatch(watchLike, dogs, aiByDog);
 
-    const notifiedRows = db
+    const notifiedRows = await db
       .select({ dogListingId: watchNotifications.dogListingId })
       .from(watchNotifications)
       .where(eq(watchNotifications.watchId, w.id))
@@ -132,7 +132,7 @@ export async function runOvernight(
     summary.newMatchesFound += fresh.length;
 
     if (!fresh.length) {
-      if (!dryRun) db.update(watches).set({ lastCheckedAt: now }).where(eq(watches.id, w.id)).run();
+      if (!dryRun) await db.update(watches).set({ lastCheckedAt: now }).where(eq(watches.id, w.id)).run();
       summary.perWatch.push({ watchId: w.id, label: w.label, found: 0, alerted: 0, curatedByAgent: false });
       log(`  "${w.label}": no new matches.`);
       continue;
@@ -168,7 +168,8 @@ export async function runOvernight(
       }
 
       if ((await sendSms(body)) === "ok") summary.textsSent += 1;
-      db.insert(watchNotifications)
+      await db
+        .insert(watchNotifications)
         .values({
           watchId: w.id,
           dogListingId: d.id,
@@ -183,7 +184,8 @@ export async function runOvernight(
 
     summary.alertsSent += alerted;
     if (!dryRun) {
-      db.update(watches)
+      await db
+        .update(watches)
         .set({
           lastCheckedAt: now,
           ...(alerted > 0

@@ -11,24 +11,26 @@ export const dynamic = "force-dynamic";
  * to the source's own page. No run-health dashboard, no disabled sources, no
  * dev knobs — just citations for the listings shown across the app.
  */
-export default function SourcesPage() {
-  const db = getDb();
+export default async function SourcesPage() {
+  const db = await getDb();
 
-  const rows = db
-    .select({
-      id: adoptionSources.id,
-      name: adoptionSources.name,
-      city: adoptionSources.city,
-      region: adoptionSources.region,
-      websiteUrl: adoptionSources.websiteUrl,
-      listingUrl: adoptionSources.listingUrl,
-      dogs: sql<number>`count(case when ${dogListings.staleStatus} in ('available','still_seen') then 1 end)`,
-    })
-    .from(adoptionSources)
-    .leftJoin(dogListings, sql`${dogListings.sourceId} = ${adoptionSources.id}`)
-    .where(sql`${adoptionSources.enabled} = 1`)
-    .groupBy(adoptionSources.id)
-    .all()
+  const rows = (
+    await db
+      .select({
+        id: adoptionSources.id,
+        name: adoptionSources.name,
+        city: adoptionSources.city,
+        region: adoptionSources.region,
+        websiteUrl: adoptionSources.websiteUrl,
+        listingUrl: adoptionSources.listingUrl,
+        dogs: sql<number>`count(case when ${dogListings.staleStatus} in ('available','still_seen') then 1 end)`,
+      })
+      .from(adoptionSources)
+      .leftJoin(dogListings, sql`${dogListings.sourceId} = ${adoptionSources.id}`)
+      .where(sql`${adoptionSources.enabled} = 1`)
+      .groupBy(adoptionSources.id)
+      .all()
+  )
     .filter((r) => r.dogs > 0)
     .sort((a, b) => b.dogs - a.dogs);
 

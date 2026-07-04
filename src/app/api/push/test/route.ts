@@ -12,7 +12,7 @@ export async function POST() {
   if (!hasPush()) {
     return NextResponse.json({ error: "push not configured" }, { status: 503 });
   }
-  const db = getDb();
+  const db = await getDb();
   const sent = await sendPushToAll(db, {
     title: "Scout is on the case 🐾",
     body: "Notifications are on. I'll ping you when a new match shows up.",

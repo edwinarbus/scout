@@ -45,10 +45,11 @@ function installAdapter(fn: () => Promise<AdapterResult> | AdapterResult) {
   ADAPTERS.test = { system: "mock", parserVersion: "test-1.0.0", crawl: async () => fn() };
 }
 
-function makeDb(over: Partial<typeof adoptionSources.$inferInsert> = {}): ScoutDb {
-  const db = createDb(":memory:");
+async function makeDb(over: Partial<typeof adoptionSources.$inferInsert> = {}): Promise<ScoutDb> {
+  const db = await createDb(":memory:");
   const now = new Date("2026-07-01T00:00:00Z");
-  db.insert(adoptionSources)
+  await db
+    .insert(adoptionSources)
     .values({
       id: "test_src",
       name: "Test Shelter",
@@ -69,17 +70,17 @@ function makeDb(over: Partial<typeof adoptionSources.$inferInsert> = {}): ScoutD
 const T0 = new Date("2026-07-01T08:00:00Z");
 const T1 = new Date("2026-07-02T08:00:00Z");
 
-const srcRow = (db: ScoutDb) =>
-  db.select().from(adoptionSources).where(eq(adoptionSources.id, "test_src")).get()!;
+const srcRow = async (db: ScoutDb) =>
+  (await db.select().from(adoptionSources).where(eq(adoptionSources.id, "test_src")).get())!;
 
 describe("backfill initialization gating", () => {
   it("daily runs are skipped until a backfill initializes the source", async () => {
-    const db = makeDb();
+    const db = await makeDb();
     installAdapter(() => okResult([dog({ sourceAnimalId: "A1" })]));
     const daily = await ingestSource(db, "test_src", { now: T0, saveRawDebug: false });
     expect(daily.skipped).toBe(true);
     expect(daily.skipReason).toContain("not initialized");
-    expect(db.select().from(sourceRuns).all()).toHaveLength(0);
+    expect(await db.select().from(sourceRuns).all()).toHaveLength(0);
 
     // --force bypasses the gate for debugging
     const forced = await ingestSource(db, "test_src", { now: T0, saveRawDebug: false, force: true });
@@ -87,20 +88,20 @@ describe("backfill initialization gating", () => {
   });
 
   it("a successful backfill records stats on the source and initializes it", async () => {
-    const db = makeDb();
+    const db = await makeDb();
     installAdapter(() =>
       okResult([dog({ sourceAnimalId: "A1" }), dog({ sourceAnimalId: "A2" })])
     );
     const s = await ingestSource(db, "test_src", { now: T0, saveRawDebug: false, mode: "backfill" });
     expect(s.status).toBe("success");
     expect(s.initializedForDailyMonitoring).toBe(true);
-    const src = srcRow(db);
+    const src = await srcRow(db);
     expect(src.backfillStatus).toBe("success");
     expect(src.initializedForDailyMonitoring).toBe(true);
     expect(src.backfillUniqueListingsSaved).toBe(2);
     expect(src.backfillRawListingsExtracted).toBe(2);
     expect(src.backfillPaginationCompleted).toBe(true);
-    const run = db.select().from(sourceRuns).all()[0];
+    const run = (await db.select().from(sourceRuns).all())[0];
     expect(run.runType).toBe("backfill");
     expect(run.confidenceScore).toBe(1);
 
@@ -111,7 +112,7 @@ describe("backfill initialization gating", () => {
   });
 
   it("a backfill with incomplete pagination does NOT initialize and does NOT mark dogs missing", async () => {
-    const db = makeDb();
+    const db = await makeDb();
     installAdapter(() => okResult([dog({ sourceAnimalId: "A1" }), dog({ sourceAnimalId: "A2" })]));
     await ingestSource(db, "test_src", { now: T0, saveRawDebug: false, mode: "backfill" });
 
@@ -122,15 +123,15 @@ describe("backfill initialization gating", () => {
     expect(s.status).toBe("partial");
     expect(s.initializedForDailyMonitoring).toBe(false);
     expect(s.missingDogs).toBe(0);
-    const src = srcRow(db);
+    const src = await srcRow(db);
     expect(src.initializedForDailyMonitoring).toBe(false);
     expect(src.backfillStatus).toBe("partial");
-    const a2 = db.select().from(dogListings).where(eq(dogListings.listingKey, "A2")).get()!;
+    const a2 = (await db.select().from(dogListings).where(eq(dogListings.listingKey, "A2")).get())!;
     expect(a2.staleStatus).toBe("available"); // untouched by the partial backfill
   });
 
   it("a failed backfill records failure without touching listings", async () => {
-    const db = makeDb();
+    const db = await makeDb();
     installAdapter(() => okResult([dog({ sourceAnimalId: "A1" })]));
     await ingestSource(db, "test_src", { now: T0, saveRawDebug: false, mode: "backfill" });
     installAdapter(() => {
@@ -138,16 +139,16 @@ describe("backfill initialization gating", () => {
     });
     const s = await ingestSource(db, "test_src", { now: T1, saveRawDebug: false, mode: "backfill" });
     expect(s.status).toBe("failed");
-    const src = srcRow(db);
+    const src = await srcRow(db);
     expect(src.backfillStatus).toBe("failed");
     expect(src.initializedForDailyMonitoring).toBe(false);
-    expect(db.select().from(dogListings).all()[0].staleStatus).toBe("available");
+    expect((await db.select().from(dogListings).all())[0].staleStatus).toBe("available");
   });
 });
 
 describe("dedupe stats and audit fields", () => {
   it("merges in-batch duplicates (same dog on two pages) and reports counts", async () => {
-    const db = makeDb({ initializedForDailyMonitoring: true });
+    const db = await makeDb({ initializedForDailyMonitoring: true });
     installAdapter(() =>
       okResult([
         dog({ sourceAnimalId: "A1", biographyRaw: "short" }),
@@ -159,17 +160,17 @@ describe("dedupe stats and audit fields", () => {
     expect(s.rawListingsExtracted).toBe(3);
     expect(s.duplicatesDetected).toBe(1);
     expect(s.uniqueListingsSaved).toBe(2);
-    expect(db.select().from(dogListings).all()).toHaveLength(2);
+    expect(await db.select().from(dogListings).all()).toHaveLength(2);
     // the richer record won the merge
-    const a1 = db.select().from(dogListings).where(eq(dogListings.listingKey, "A1")).get()!;
+    const a1 = (await db.select().from(dogListings).where(eq(dogListings.listingKey, "A1")).get())!;
     expect(a1.biographyRaw).toContain("richer");
-    const run = db.select().from(sourceRuns).all()[0];
+    const run = (await db.select().from(sourceRuns).all())[0];
     expect(run.duplicatesDetected).toBe(1);
     expect(run.uniqueListingsSaved).toBe(2);
   });
 
   it("listing-card + detail-page data land in ONE record (no split dogs)", async () => {
-    const db = makeDb({ initializedForDailyMonitoring: true });
+    const db = await makeDb({ initializedForDailyMonitoring: true });
     // Same animal id from a card-only extraction and a detail-fetched extraction.
     installAdapter(() =>
       okResult([
@@ -179,13 +180,13 @@ describe("dedupe stats and audit fields", () => {
     );
     const s = await ingestSource(db, "test_src", { now: T0, saveRawDebug: false });
     expect(s.uniqueListingsSaved).toBe(1);
-    const rows = db.select().from(dogListings).all();
+    const rows = await db.select().from(dogListings).all();
     expect(rows).toHaveLength(1);
     expect(rows[0].biographyRaw).toBe("full bio from detail page");
   });
 
   it("records dedupe keys/methods and flags weak keys", async () => {
-    const db = makeDb({ initializedForDailyMonitoring: true });
+    const db = await makeDb({ initializedForDailyMonitoring: true });
     installAdapter(() =>
       okResult([
         dog({ sourceAnimalId: "A1" }),
@@ -195,7 +196,7 @@ describe("dedupe stats and audit fields", () => {
     const s = await ingestSource(db, "test_src", { now: T0, saveRawDebug: false });
     expect(s.listingsMissingStableIds).toBe(1);
     expect(s.warnings.some((w) => w.includes("lack a source animal id"))).toBe(true);
-    const rows = db.select().from(dogListings).all();
+    const rows = await db.select().from(dogListings).all();
     const strong = rows.find((r) => r.sourceAnimalId === "A1")!;
     const weak = rows.find((r) => r.sourceAnimalId == null)!;
     expect(strong.dedupeMethod).toBe("source_animal_id");
@@ -205,7 +206,7 @@ describe("dedupe stats and audit fields", () => {
   });
 
   it("URL-param changes for the same animal id do not create duplicates", async () => {
-    const db = makeDb({ initializedForDailyMonitoring: true });
+    const db = await makeDb({ initializedForDailyMonitoring: true });
     installAdapter(() =>
       okResult([dog({ sourceAnimalId: "A1", originalUrl: "https://example.org/pets/A1?ref=page1" })])
     );
@@ -215,29 +216,30 @@ describe("dedupe stats and audit fields", () => {
     );
     const s = await ingestSource(db, "test_src", { now: T1, saveRawDebug: false });
     expect(s.newDogs).toBe(0);
-    expect(db.select().from(dogListings).all()).toHaveLength(1);
+    expect(await db.select().from(dogListings).all()).toHaveLength(1);
   });
 
   it("preserves firstSeenAt, user status, and sets lastChangedAt on content change", async () => {
-    const db = makeDb({ initializedForDailyMonitoring: true });
+    const db = await makeDb({ initializedForDailyMonitoring: true });
     installAdapter(() => okResult([dog({ sourceAnimalId: "A1" })]));
     await ingestSource(db, "test_src", { now: T0, saveRawDebug: false });
-    db.insert(userDogStatuses)
+    await db
+      .insert(userDogStatuses)
       .values({ dogListingId: "test_src::A1", status: "saved", updatedAt: T0 })
       .run();
 
     installAdapter(() => okResult([dog({ sourceAnimalId: "A1", statusRaw: "Adoption Pending" })]));
     await ingestSource(db, "test_src", { now: T1, saveRawDebug: false });
-    const row = db.select().from(dogListings).all()[0];
+    const row = (await db.select().from(dogListings).all())[0];
     expect(row.firstSeenAt).toEqual(T0);
     expect(row.lastChangedAt).toEqual(T1);
-    const status = db.select().from(userDogStatuses).all()[0];
+    const status = (await db.select().from(userDogStatuses).all())[0];
     expect(status.status).toBe("saved"); // untouched by updates
 
     // unchanged run: lastChangedAt stays put
     const T2 = new Date("2026-07-03T08:00:00Z");
     await ingestSource(db, "test_src", { now: T2, saveRawDebug: false });
-    const row2 = db.select().from(dogListings).all()[0];
+    const row2 = (await db.select().from(dogListings).all())[0];
     expect(row2.lastChangedAt).toEqual(T1);
     expect(row2.lastSeenAt).toEqual(T2);
   });
@@ -245,7 +247,7 @@ describe("dedupe stats and audit fields", () => {
 
 describe("run classification + confidence", () => {
   it("success with warnings is distinguished from clean success", async () => {
-    const db = makeDb({ initializedForDailyMonitoring: true });
+    const db = await makeDb({ initializedForDailyMonitoring: true });
     installAdapter(() => okResult([dog({ sourceAnimalId: "A1" })], { warnings: ["minor note"] }));
     const s = await ingestSource(db, "test_src", { now: T0, saveRawDebug: false });
     expect(s.status).toBe("success_with_warnings");

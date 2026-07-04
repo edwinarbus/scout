@@ -20,7 +20,7 @@ import { enrichDogs } from "@/ingest/enrich";
 import { hasAnthropicCredential, VISION_MODEL } from "@/lib/anthropic";
 
 async function main() {
-  const db = createDb();
+  const db = await createDb();
   const startedAt = Date.now();
 
   console.log("=== Scout refresh: ingesting enabled sources ===");

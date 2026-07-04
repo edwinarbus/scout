@@ -28,9 +28,10 @@ export async function POST(req: Request) {
   if (!sub?.endpoint || !sub.keys?.p256dh || !sub.keys?.auth) {
     return NextResponse.json({ error: "invalid subscription" }, { status: 400 });
   }
-  const db = getDb();
+  const db = await getDb();
   const now = new Date();
-  db.insert(pushSubscriptions)
+  await db
+    .insert(pushSubscriptions)
     .values({
       endpoint: sub.endpoint,
       p256dh: sub.keys.p256dh,
@@ -52,7 +53,7 @@ export async function DELETE(req: Request) {
   if (!body?.endpoint) {
     return NextResponse.json({ error: "endpoint required" }, { status: 400 });
   }
-  const db = getDb();
-  db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, body.endpoint)).run();
+  const db = await getDb();
+  await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, body.endpoint)).run();
   return NextResponse.json({ ok: true });
 }

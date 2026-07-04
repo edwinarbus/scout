@@ -46,7 +46,7 @@ async function main() {
     process.exit(1);
   }
 
-  const db = createDb();
+  const db = await createDb();
   console.log(`Vision model: ${VISION_MODEL}\n`);
   const summary = await enrichDogs(db, {
     sourceId: args.source,

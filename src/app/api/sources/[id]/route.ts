@@ -11,8 +11,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const db = getDb();
-  const source = db
+  const db = await getDb();
+  const source = await db
     .select()
     .from(adoptionSources)
     .where(eq(adoptionSources.id, id))
@@ -23,7 +23,8 @@ export async function PATCH(
   if (!body || typeof body.enabled !== "boolean") {
     return NextResponse.json({ error: "body must be { enabled: boolean }" }, { status: 400 });
   }
-  db.update(adoptionSources)
+  await db
+    .update(adoptionSources)
     .set({ enabled: body.enabled, updatedAt: new Date() })
     .where(eq(adoptionSources.id, id))
     .run();
