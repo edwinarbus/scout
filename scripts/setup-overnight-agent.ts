@@ -41,6 +41,9 @@ const KICKOFF = `Run this exact command, then report its output verbatim (or the
 
 curl -sf -X POST "${SCOUT_URL}/api/cron/overnight" -H "Authorization: Bearer $CRON_SECRET"`;
 
+// Sonnet 5, not Opus — the only job is one curl call, no reasoning needed.
+const AGENT_MODEL = "claude-sonnet-5";
+
 async function main() {
   requireEnv("ANTHROPIC_API_KEY");
   const cronSecret = requireEnv("CRON_SECRET");
@@ -63,12 +66,14 @@ async function main() {
     console.log(`Reusing environment ${environmentId}`);
   }
 
-  // 2. Agent — bash only. It runs one curl command; nothing else.
+  // 2. Agent — bash only. It runs one curl command; nothing else. If it
+  //    already exists, update in place (new version) instead of creating a
+  //    duplicate — e.g. when AGENT_MODEL above changes.
   let agentId = process.env.SCOUT_AGENT_ID;
   if (!agentId) {
     const agent = await client.beta.agents.create({
       name: "Scout Overnight Runner",
-      model: "claude-opus-4-8",
+      model: AGENT_MODEL,
       system:
         "You trigger Scout's overnight cron endpoint via curl and report its response faithfully. You never invent output, never retry more than once, never do anything else.",
       tools: [
@@ -82,7 +87,16 @@ async function main() {
     agentId = agent.id;
     console.log(`Created agent ${agentId} (version ${agent.version})`);
   } else {
-    console.log(`Reusing agent ${agentId}`);
+    const existing = await client.beta.agents.retrieve(agentId);
+    if (existing.model.id !== AGENT_MODEL) {
+      const updated = await client.beta.agents.update(agentId, {
+        version: existing.version,
+        model: AGENT_MODEL,
+      });
+      console.log(`Updated agent ${agentId}: ${existing.model.id} → ${AGENT_MODEL} (version ${updated.version})`);
+    } else {
+      console.log(`Reusing agent ${agentId} (already ${AGENT_MODEL})`);
+    }
   }
 
   // 3. Vault — a single CRON_SECRET credential, substituted at egress and
@@ -106,15 +120,27 @@ async function main() {
   }
 
   // 4. Scheduled deployment — nightly at 2:15am Pacific (matches the CLI's
-  //    own suggested cron time).
-  const deployment = await client.beta.deployments.create({
-    name: "Scout overnight trigger",
-    agent: agentId,
-    environment_id: environmentId,
-    vault_ids: [vaultId],
-    initial_events: [{ type: "user.message", content: [{ type: "text", text: KICKOFF }] }],
-    schedule: { type: "cron", expression: "15 2 * * *", timezone: "America/Los_Angeles" },
-  });
+  //    own suggested cron time). Re-pin in place if it already exists (e.g.
+  //    the agent was just updated to a new version) instead of creating a
+  //    second, duplicate schedule.
+  const deploymentId = process.env.SCOUT_DEPLOYMENT_ID;
+  const deployment = deploymentId
+    ? await client.beta.deployments.update(deploymentId, {
+        agent: agentId, // bare string re-pins to the agent's latest version
+        environment_id: environmentId,
+        vault_ids: [vaultId],
+        initial_events: [{ type: "user.message", content: [{ type: "text", text: KICKOFF }] }],
+        schedule: { type: "cron", expression: "15 2 * * *", timezone: "America/Los_Angeles" },
+      })
+    : await client.beta.deployments.create({
+        name: "Scout overnight trigger",
+        agent: agentId,
+        environment_id: environmentId,
+        vault_ids: [vaultId],
+        initial_events: [{ type: "user.message", content: [{ type: "text", text: KICKOFF }] }],
+        schedule: { type: "cron", expression: "15 2 * * *", timezone: "America/Los_Angeles" },
+      });
+  console.log(deploymentId ? `Updated deployment ${deployment.id}` : `Created deployment ${deployment.id}`);
 
   console.log("\n── done ──");
   console.log(`Deployment: ${deployment.id} (${deployment.status})`);

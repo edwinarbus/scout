@@ -737,7 +737,19 @@ async function recordRun(
     .run();
 }
 
-/** Ingest every enabled source, sequentially (politeness), then regroup duplicates. */
+/** How many sources to ingest at once. Politeness is per-HOST (fetchClient's
+ *  own rate limiter), not per-source, so sources sharing a host (e.g. the six
+ *  24petconnect.com tenants) still serialize behind each other regardless of
+ *  this number — the concurrency gain comes from the many sources that don't
+ *  share a host. Bounded mainly so a ~20-source run doesn't open that many
+ *  simultaneous connections against the DB and every distinct shelter host. */
+const INGEST_CONCURRENCY = 8;
+
+/**
+ * Ingest every enabled source. Runs up to INGEST_CONCURRENCY sources at once;
+ * true politeness (a minimum delay between requests to the same host) is
+ * still enforced by fetchClient regardless of how many sources are in flight.
+ */
 export async function ingestAllEnabled(
   db: ScoutDb,
   opts: IngestOptions = {}
@@ -747,10 +759,22 @@ export async function ingestAllEnabled(
     .from(adoptionSources)
     .where(eq(adoptionSources.enabled, true))
     .all();
-  const summaries: RunSummary[] = [];
-  for (const s of sources) {
-    summaries.push(await ingestSource(db, s.id, opts));
+
+  const summaries: RunSummary[] = new Array(sources.length);
+  let next = 0;
+  async function worker() {
+    for (let i = next++; i < sources.length; i = next++) {
+      const s = sources[i];
+      const sourceLog = opts.log
+        ? (m: string) => opts.log!(`[${s.id}] ${m}`)
+        : (m: string) => console.log(`  [${s.id}] ${m}`);
+      summaries[i] = await ingestSource(db, s.id, { ...opts, log: sourceLog });
+    }
   }
+  await Promise.all(
+    Array.from({ length: Math.min(INGEST_CONCURRENCY, sources.length) }, worker)
+  );
+
   await rebuildCanonicalGroups(db, opts.now ?? new Date());
   return summaries;
 }
