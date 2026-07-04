@@ -572,24 +572,18 @@ export default function ScoutApp() {
     [expandedId, dogs, ai]
   );
 
-  /** Open the full profile. On desktop a grid card grows + turns over from its
-   *  exact slot (flip). A map/list "listing" has no trading card to flip, so it
-   *  opens as a PLAIN info card that simply fades in — same dossier, no flip.
-   *  On phones EVERYTHING opens plain: WebKit renders the preserve-3d flip
-   *  unreliably on this transform-heavy page (janky close + a shadow/border
-   *  "flash" as the grid card is revealed behind the modal) — the same reason
-   *  view transitions are off < 768 (see HAS_VT). The plain fade is smooth and
-   *  robust there. */
+  /** Open the full profile. A grid card grows + turns over from its exact slot
+   *  (flip) on every device. A map/list "listing" has no trading card to flip,
+   *  so it opens as a PLAIN info card that simply fades in — same dossier, no
+   *  flip. */
   const openExpanded = useCallback((id: string, plain = false) => {
-    const usePlain =
-      plain || (typeof window !== "undefined" && window.innerWidth < 768);
-    if (typeof document !== "undefined" && !usePlain) {
+    if (typeof document !== "undefined" && !plain) {
       const el = document.getElementById(`card-${id}`);
       setExpandedRect(el ? el.getBoundingClientRect() : null);
     } else {
       setExpandedRect(null);
     }
-    setExpandPlain(usePlain);
+    setExpandPlain(plain);
     setExpandedId(id);
   }, []);
 
