@@ -1230,6 +1230,17 @@ body {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
+/* Safari doesn't fully respect backface-visibility for box-shadow on a
+   rotated 3D element — the front face's card shadow/hairline ring (from the
+   shared CardFace .scout-card styling) can leave a faint ghost outline
+   behind even once the face has turned away. The front face is transitional
+   (photo-only, hidden text) and the dossier already carries its own shadow
+   via .scout-flip-plate, so the front card never needed its own — stripping
+   it removes the one thing that was leaking through. */
+.scout-flip-face .scout-card,
+.scout-flip-face .scout-card::before {
+  box-shadow: none;
+}
 /* the back is pre-turned a half-rotation so it reads correctly once the whole
    card has turned 180° to face the viewer. */
 .scout-flip-back {

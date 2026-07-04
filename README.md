@@ -99,7 +99,7 @@ and the overnight curator are always on.
 | `SCOUT_VISION_MODEL` | — | Override the vision model (default `claude-haiku-4-5`) |
 | `SCOUT_MANAGED_AGENT_MODEL` | — | Override the curator model (default `claude-opus-4-8`) |
 | `SCOUT_MANAGED_AGENT=0` | — | Opt out of the curator specifically; search/vision unaffected |
-| `SCOUT_TWILIO_ACCOUNT_SID` / `_AUTH_TOKEN` / `_FROM` | SMS alerts | Twilio credentials |
+| `SCOUT_TWILIO_ACCOUNT_SID`, `SCOUT_TWILIO_AUTH_TOKEN`, `SCOUT_TWILIO_FROM` | SMS alerts | Twilio credentials — each is its own full env var name; don't abbreviate |
 | `SCOUT_SMS_TO` | SMS alerts | Destination phone number |
 | `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | Deployed use | Provisioned via the Vercel Marketplace Turso integration; no Turso credential falls back to a local SQLite file |
 
