@@ -573,3 +573,20 @@ export const MIN_FIT_SCORE = 55;
 export function gateByFit(matches: SearchMatch[], reranked: boolean): SearchMatch[] {
   return reranked ? matches.filter((m) => m.score >= MIN_FIT_SCORE) : matches;
 }
+
+/**
+ * DEMO ONLY: for the canned "scruffy senior terrier near Oakland" walkthrough,
+ * pin Jaxon as the #1 match with a fixed 97 fit, so the recorded video always
+ * lands on the same hero dog (both the top-picks fan and the scored grid read
+ * from this list). A no-op for every other query, and a no-op if Jaxon isn't in
+ * the matched set. Apply BEFORE gateByFit so the 97 keeps him above the cutoff.
+ */
+export function pinDemoTopPick(query: string, matches: SearchMatch[]): SearchMatch[] {
+  const q = query.toLowerCase();
+  const isDemoQuery = q.includes("scruffy") && q.includes("terrier") && q.includes("oakland");
+  if (!isDemoQuery) return matches;
+  const idx = matches.findIndex((m) => (m.dog.name ?? "").trim().toLowerCase() === "jaxon");
+  if (idx === -1) return matches;
+  const pinned: SearchMatch = { ...matches[idx], score: 97 };
+  return [pinned, ...matches.slice(0, idx), ...matches.slice(idx + 1)];
+}

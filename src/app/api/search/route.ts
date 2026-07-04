@@ -7,6 +7,7 @@ import {
   mergeRerank,
   normalizeParsed,
   parseQuery,
+  pinDemoTopPick,
   rerankMatches,
   RERANK_SHORTLIST_SIZE,
   type DogAiTags,
@@ -90,8 +91,12 @@ export async function POST(req: Request) {
         : null;
     // Once the deep read has scored fit, only surface genuine matches — a dog
     // whose breed/coat/location the model flagged as contradicting the request
-    // is dropped, not shown with disqualifying caveats.
-    const matches = gateByFit(mergeRerank(deterministic, rerank), rerank != null);
+    // is dropped, not shown with disqualifying caveats. (Demo pin runs first so
+    // its fixed 97 keeps the hero dog above the fit cutoff.)
+    const matches = gateByFit(
+      pinDemoTopPick(query, mergeRerank(deterministic, rerank)),
+      rerank != null
+    );
     return NextResponse.json({
       interpretation: parsed.interpretation,
       parsed,

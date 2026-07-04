@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DogPhoto } from "./ui";
 
 /**
@@ -30,8 +30,26 @@ export default function PhotoCarousel({
 
   const go = (n: number) => setI((n + list.length) % list.length);
 
+  // Swipe left/right to change photo (mobile). Uses touchstart/end deltas, so
+  // it works even inside the profile modal, which swallows touchmove elsewhere.
+  const touchStartX = useRef<number | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0]?.clientX ?? null;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current == null || !multi) return;
+    const dx = (e.changedTouches[0]?.clientX ?? touchStartX.current) - touchStartX.current;
+    if (Math.abs(dx) > 40) go(dx < 0 ? i + 1 : i - 1); // left → next, right → prev
+    touchStartX.current = null;
+  };
+
   return (
-    <div className="relative h-full w-full overflow-hidden bg-cream-100">
+    <div
+      className="relative h-full w-full overflow-hidden bg-cream-100"
+      style={{ touchAction: "pan-y" }}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
       {/* stacked slides, cross-faded */}
       {list.map((src, idx) => (
         <div

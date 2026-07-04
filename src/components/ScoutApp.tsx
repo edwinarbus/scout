@@ -1092,13 +1092,13 @@ export default function ScoutApp() {
                       them — under the top line (z-24), over the bottom (z-16) —
                       and the back band (z-6) glides behind. */}
                   <div
-                    className="scout-query-text scout-rise relative z-[24] mx-auto mt-3 max-w-[94vw] whitespace-nowrap font-sans text-[clamp(1.3rem,4.4vw,2.4rem)] font-extrabold leading-tight tracking-tight"
+                    className="scout-query-text scout-rise relative z-[24] mx-auto mt-3 max-w-[94vw] whitespace-nowrap font-sans text-[clamp(2.1rem,8vw,2.7rem)] font-extrabold leading-tight tracking-tight"
                     style={{ viewTransitionName: "scout-query" } as React.CSSProperties}
                   >
                     {qTop}
                   </div>
                   {qBot && (
-                    <div className="scout-query-text scout-rise relative z-[16] mx-auto max-w-[94vw] whitespace-nowrap font-sans text-[clamp(1.3rem,4.4vw,2.4rem)] font-extrabold leading-tight tracking-tight">
+                    <div className="scout-query-text scout-rise relative z-[16] mx-auto max-w-[94vw] whitespace-nowrap font-sans text-[clamp(2.1rem,8vw,2.7rem)] font-extrabold leading-tight tracking-tight">
                       {qBot}
                     </div>
                   )}
