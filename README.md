@@ -40,6 +40,17 @@ hygiene (placeholder "image coming soon" graphics and broken images are pruned �
 dog), and a source-health dashboard (robots.txt compliance, backfill status, per-source data
 completeness, confidence scoring).
 
+## Claude API surface
+
+Claude shows up in three shapes across the app, each picked for what the task needs:
+
+| Feature | Model | API surface |
+|---|---|---|
+| Natural-language search | Sonnet 5 | `messages.create` with **Structured Outputs** (`output_config.format: json_schema`) for the parse stage; the same pattern repeated across the re-rank stage's parallel chunked calls (`Promise.allSettled`, 5-dog chunks — output tokens generate serially *within* a call, so 8 small concurrent calls finish in the time of one); **prompt caching** (`cache_control: ephemeral`) on the shared system prompt across chunks |
+| Photo vision | Haiku 4.5 | Multimodal `messages.create` — one downscaled (≤512px) base64 JPEG `image` content block per dog — with Structured Outputs, cached by photo hash so unchanged photos are never re-sent |
+| Nightly overnight scout | Sonnet 5 | **Managed Agents**, end to end — a scheduled deployment (`beta.deployments.create`, cron) wakes the pipeline via a minimal, `bash`-only trigger agent; a second persisted agent (`beta.agents.create` + `beta.sessions.create`, with the `agent_toolset_20260401` toolset attached for future per-dog web research) judges which new matches are worth a text and writes the copy. |
+
+
 ## Stack
 
 - **Next.js 15** (App Router) + React 19 + TypeScript + Tailwind CSS v4
@@ -52,16 +63,6 @@ completeness, confidence scoring).
 - **sharp** for photo downscaling ahead of vision calls
 - **`@anthropic-ai/sdk`** — every Claude feature below
 - **Vitest** for tests (fixture-recorded, no live network), **tsx** for CLI scripts
-
-## Claude API surface
-
-Claude shows up in three shapes across the app, each picked for what the task needs:
-
-| Feature | Model | API surface |
-|---|---|---|
-| Natural-language search | Sonnet 5 | `messages.create` with **Structured Outputs** (`output_config.format: json_schema`) for the parse stage; the same pattern repeated across the re-rank stage's parallel chunked calls (`Promise.allSettled`, 5-dog chunks — output tokens generate serially *within* a call, so 8 small concurrent calls finish in the time of one); **prompt caching** (`cache_control: ephemeral`) on the shared system prompt across chunks |
-| Photo vision | Haiku 4.5 | Multimodal `messages.create` — one downscaled (≤512px) base64 JPEG `image` content block per dog — with Structured Outputs, cached by photo hash so unchanged photos are never re-sent |
-| Nightly overnight scout | Sonnet 5 | **Managed Agents**, end to end — a scheduled deployment (`beta.deployments.create`, cron) wakes the pipeline via a minimal, `bash`-only trigger agent; a second persisted agent (`beta.agents.create` + `beta.sessions.create`, with the `agent_toolset_20260401` toolset attached for future per-dog web research) judges which new matches are worth a text and writes the copy. |
 
 
 ## Quick start
