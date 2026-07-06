@@ -12,15 +12,13 @@ acting.
 
 ## What it does
 
-**Natural-language + voice search (Claude Sonnet 5).** One search box. Type or speak "scruffy
+**Natural-language + voice search (Claude Sonnet 5).** Type or speak "scruffy
 small dog, good in an apartment, under 25 lb, been waiting a while, near Oakland" and Claude
 turns it into a ranked shortlist — parsing the sentence into structured criteria, then
 re-scoring the shortlist with shelter facts, bio text, photo reads, and breed-typical
 knowledge no structured field captures ("cattle-dog mixes need real exercise"). The loading
 state IS the matching: real candidate cards fly in and sift past the query text as each stage
-returns, then morph into the final scored grid via the View Transitions API — never a spinner
-in front of half-finished results. Voice input uses the browser's own Web Speech API, no key
-needed.
+returns, then morph into the final scored grid.
 
 **Photo vision (Claude Haiku 4.5).** Reads one photo per dog into searchable visual features —
 coat length/texture ("scruffy," "fluffy"), apparent size, colors, a one-line description, a
