@@ -63,12 +63,6 @@ Claude shows up in three shapes across the app, each picked for what the task ne
 | Photo vision | Haiku 4.5 | Multimodal `messages.create` — one downscaled (≤512px) base64 JPEG `image` content block per dog — with Structured Outputs, cached by photo hash so unchanged photos are never re-sent |
 | Nightly overnight scout | Sonnet 5 | **Managed Agents**, end to end — a scheduled deployment (`beta.deployments.create`, cron) wakes the pipeline via a minimal, `bash`-only trigger agent; a second persisted agent (`beta.agents.create` + `beta.sessions.create`, with the `agent_toolset_20260401` toolset attached for future per-dog web research) judges which new matches are worth a text and writes the copy. |
 
-Structured Outputs means a malformed parse response can't happen structurally; the re-rank
-stage's chunking means one failed chunk only drops *its* dogs back to deterministic order,
-never the whole search; and the curator's failure path (no beta access, a bad response) falls
-back cleanly to the deterministic alert ranking, while a failed nightly trigger simply waits
-for the next night's cron rather than retrying forever. A rough night for the API is never a
-rough night for the alert.
 
 ## Quick start
 
