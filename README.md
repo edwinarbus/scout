@@ -101,6 +101,21 @@ ids it printed the first time, and it updates the existing agent in place instea
 a duplicate. See `scripts/setup-overnight-agent.ts` and `scripts/setup-watch-curator.ts` for
 the exact resources each creates.
 
+**Pausing and re-enabling the nightly run.** The overnight trigger is a scheduled deployment,
+so you can pause it (from the Anthropic Console, or `client.beta.deployments.pause(id)`) to
+stop the nightly harvest without tearing anything down — the agent, environment, vault, and
+schedule stay intact. To turn it back on:
+
+```bash
+npm run scout:resume-overnight-agent -- <deployment_id>   # or set SCOUT_DEPLOYMENT_ID
+```
+
+This unpauses the deployment and, because unpausing resumes only from the *next* scheduled
+occurrence (nights missed while paused are never backfilled), fires one catch-up run
+immediately so it starts harvesting again right away — then prints the next scheduled runs.
+Pass `--no-run` to unpause without the catch-up harvest, or `--run-only` to force a harvest
+now without changing the pause state. See `scripts/resume-deployment.ts`.
+
 ## Environment variables
 
 | Variable | Required for | Notes |
@@ -131,7 +146,8 @@ src/
   db/           Drizzle schema + SQL migrations (libSQL/Turso, local-file fallback)
   app/          matcher + map UI (/), health dashboard (/sources), API routes
 scripts/        CLI entry points (seed, verify, backfill, ingest, enrich, overnight,
-                setup-overnight-agent, setup-watch-curator, run-deployment, …)
+                setup-overnight-agent, setup-watch-curator, run-deployment,
+                resume-deployment, …)
 ```
 
 ## Scope & constraints
